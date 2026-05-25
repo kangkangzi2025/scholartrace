@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScholarTrace · 学者学术圈网络图谱</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #0a0e1a; --ink: #fef3c7; --accent: #f59e0b; }
+  html, body { background: var(--bg); color: #e2e8f0; }
+  body { font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .font-serif-zh { font-family: "Noto Serif SC", serif; }
+  .font-mono { font-family: "JetBrains Mono", monospace; }
+  .bg-glow { background-image: radial-gradient(circle at 50% 0%, rgba(245,158,11,0.15), transparent 60%); }
+  .blink::after { content: "▌"; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .terminal { font-family: "JetBrains Mono", monospace; line-height: 1.7; }
+  .card-hover { transition: all 0.2s ease; }
+  .card-hover:hover { transform: translateY(-3px); border-color: #f59e0b; }
+  ::selection { background: #f59e0b; color: #0a0e1a; }
+  .mode-active { background: #f59e0b; color: #0a0e1a; }
+</style>
+</head>
+<body class="min-h-screen bg-glow">
+
+<header class="px-8 py-6 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <div class="w-9 h-9 rounded-md bg-amber-500 flex items-center justify-center font-bold text-slate-900">ST</div>
+    <div>
+      <h1 class="text-xl font-semibold tracking-wide">ScholarTrace</h1>
+      <p class="text-xs text-slate-400 -mt-0.5">学者学术圈网络图谱</p>
+    </div>
+  </div>
+  <nav class="text-sm text-slate-400 flex gap-6">
+    <a href="#" class="hover:text-amber-400">已收录领域</a>
+    <a href="#" class="hover:text-amber-400">关于</a>
+  </nav>
+</header>
+
+<main class="max-w-4xl mx-auto px-6 mt-16">
+
+  <h2 class="font-serif-zh text-5xl md:text-6xl font-bold leading-tight text-center">
+    <span class="text-amber-400">输入一个领域</span><br>
+    <span class="text-slate-300">看清那群人是谁</span>
+  </h2>
+  <p class="mt-6 text-center text-slate-400 max-w-2xl mx-auto leading-relaxed">
+    给任意研究领域，ScholarTrace 用 RAG + LLM-as-a-judge 召回核心学者，
+    按 4 项硬指标（h-index / 总引 / 近 3 年 / 中心性）排序，
+    渲染出 1.5 度的可交互引用图谱。
+  </p>
+
+  <!-- 双模式 toggle -->
+  <div class="mt-10 flex justify-center">
+    <div class="inline-flex rounded-full bg-slate-900 border border-slate-700 p-1">
+      <button id="mode-domain" class="mode-active px-5 py-2 rounded-full text-sm font-medium transition">🎯 领域 Domain</button>
+      <button id="mode-person" class="px-5 py-2 rounded-full text-sm text-slate-400 transition">👤 学者 Person</button>
+    </div>
+  </div>
+
+  <!-- 搜索框 -->
+  <div class="mt-6 relative">
+    <input id="q" type="text"
+           placeholder="输入研究领域，例如 Learning to Rank / 学习排序 / L2R"
+           class="w-full px-6 py-5 text-lg rounded-2xl bg-slate-900/70 border border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 outline-none transition placeholder:text-slate-600"
+           autofocus>
+    <button id="go"
+            class="absolute right-3 top-1/2 -translate-y-1/2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium transition">
+      检索 ↵
+    </button>
+  </div>
+
+  <div class="mt-6 flex items-center justify-center gap-3 text-xs text-slate-500 flex-wrap">
+    <span>试试：</span>
+    <button class="suggest px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 hover:text-amber-300" data-q="Learning to Rank">Learning to Rank</button>
+    <button class="suggest px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 hover:text-amber-300" data-q="学习排序">学习排序</button>
+    <button class="suggest px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 hover:text-amber-300" data-q="L2R">L2R</button>
+    <button class="suggest px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 hover:text-amber-300 opacity-50" data-q="Diffusion Models" disabled>Diffusion Models (待录入)</button>
+  </div>
+
+  <!-- 已收录领域 -->
+  <section class="mt-24">
+    <h3 class="text-sm uppercase tracking-widest text-slate-500 mb-6">已收录领域 · MVP v1.0</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+      <a href="list.html?id=learning-to-rank" class="card-hover block p-5 rounded-xl bg-slate-900/50 border border-slate-800">
+        <div class="flex items-center justify-between mb-3">
+          <p class="font-medium">Learning to Rank</p>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400">12 学者</span>
+        </div>
+        <p class="text-xs text-slate-500 mb-2">学习排序 / 排序学习</p>
+        <p class="text-xs text-slate-400 leading-relaxed">IR + ML 交叉领域，2005-2018 黄金期；pointwise / pairwise / listwise 三大流派。</p>
+        <div class="mt-3 flex gap-2 text-[10px] text-slate-500">
+          <span class="px-2 py-0.5 rounded bg-slate-800">CS</span>
+          <span class="px-2 py-0.5 rounded bg-slate-800">IR</span>
+          <span class="px-2 py-0.5 rounded bg-slate-800">ML</span>
+        </div>
+      </a>
+
+      <div class="block p-5 rounded-xl bg-slate-900/30 border border-slate-800 border-dashed opacity-50">
+        <p class="font-medium text-slate-400 mb-2">Diffusion Models</p>
+        <p class="text-xs text-slate-500 leading-relaxed">v1.1 → 拓展到 generative AI 领域</p>
+      </div>
+
+      <div class="block p-5 rounded-xl bg-slate-900/30 border border-slate-800 border-dashed opacity-50">
+        <p class="font-medium text-slate-400 mb-2">RLHF</p>
+        <p class="text-xs text-slate-500 leading-relaxed">v1.1 → 对齐与人类反馈</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 4 阶段管线 -->
+  <section class="mt-24 grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+    <div class="p-4 rounded-lg bg-slate-900/40 border border-slate-800">
+      <p class="text-amber-400 font-mono mb-1">Stage 1</p>
+      <p class="text-slate-300 mb-1">概念对齐</p>
+      <p class="text-slate-500 leading-relaxed">OpenAlex Concept Tree + LLM 同义词归并</p>
+    </div>
+    <div class="p-4 rounded-lg bg-slate-900/40 border border-slate-800">
+      <p class="text-amber-400 font-mono mb-1">Stage 2</p>
+      <p class="text-slate-300 mb-1">RAG 召回</p>
+      <p class="text-slate-500 leading-relaxed">Qdrant ANN · Top 100 候选学者，Recall@100 ≥ 90%</p>
+    </div>
+    <div class="p-4 rounded-lg bg-slate-900/40 border border-slate-800">
+      <p class="text-amber-400 font-mono mb-1">Stage 3</p>
+      <p class="text-slate-300 mb-1">硬规则排序</p>
+      <p class="text-slate-500 leading-relaxed">h-index / 总引 / 近 3 年活跃度 三滑块加权</p>
+    </div>
+    <div class="p-4 rounded-lg bg-slate-900/40 border border-slate-800">
+      <p class="text-amber-400 font-mono mb-1">Stage 4</p>
+      <p class="text-slate-300 mb-1">LLM-as-a-judge</p>
+      <p class="text-slate-500 leading-relaxed">SSE 流式打分 · 关联理由生成 · ✨ 节点点亮</p>
+    </div>
+  </section>
+
+  <footer class="mt-24 mb-12 text-center text-xs text-slate-600">
+    Beijing Zhongguancun Academy · AI Future Hackathon 2026<br>
+    Recall@100 ≥ 90% · 首屏 ≤ 1.5s · AI 重排 ≤ 5s
+  </footer>
+</main>
+
+<!-- 概念对齐 Modal -->
+<div id="modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-40 flex items-center justify-center px-6">
+  <div class="max-w-md w-full rounded-2xl bg-slate-900 border border-slate-700 p-7">
+    <p class="text-xs font-mono text-amber-400 mb-2">[Stage 1] Concept Alignment</p>
+    <p class="text-sm text-slate-400 mb-4">检测到输入：<span id="user-input" class="text-amber-300 font-mono"></span></p>
+    <p class="text-slate-200 mb-2">是否对齐到以下领域？</p>
+    <div class="rounded-xl bg-slate-800 p-5 my-4">
+      <p class="font-serif-zh text-2xl font-bold text-amber-400" id="aligned-name"></p>
+      <p class="text-sm text-slate-400 mt-1" id="aligned-cn"></p>
+      <p class="text-xs text-slate-500 mt-3 font-mono" id="aligned-path"></p>
+      <p class="text-xs text-slate-500 mt-3" id="aligned-desc"></p>
+    </div>
+    <div class="flex gap-3">
+      <button id="modal-cancel" class="flex-1 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm text-slate-300">不是这个</button>
+      <button id="modal-confirm" class="flex-1 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 text-sm font-medium">确认 · 检索 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 调查中 Overlay -->
+<div id="overlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-50 flex items-start justify-center pt-20 px-6">
+  <div class="max-w-2xl w-full">
+    <div class="flex items-center gap-3 mb-6 text-amber-400">
+      <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div>
+      <span class="text-sm font-mono">scholartrace agent · RAG pipeline running</span>
+    </div>
+    <pre id="log" class="terminal text-sm text-slate-300 whitespace-pre-wrap"></pre>
+  </div>
+</div>
+
+<script>
+// Domain registry
+const DOMAINS = {
+  "learning-to-rank": {
+    id: "learning-to-rank",
+    name: "Learning to Rank",
+    chinese: "学习排序",
+    aliases: ["l2r", "ltr", "learning to rank", "学习排序", "排序学习", "ranking model", "search ranking"],
+    concept_path: "CS → AI → Machine Learning → Information Retrieval → Learning to Rank",
+    desc: "IR + ML 交叉。2005-2018 黄金期，pointwise → pairwise → listwise 三大流派。"
+  }
+};
+
+function normalize(s) { return s.toLowerCase().replace(/[-\s_]/g, ' ').replace(/\s+/g, ' ').trim(); }
+
+function resolveDomain(input) {
+  const n = normalize(input);
+  for (const [id, d] of Object.entries(DOMAINS)) {
+    if (d.aliases.some(a => normalize(a) === n || n.includes(normalize(a)))) return d;
+  }
+  return null;
+}
+
+// Mode toggle
+let mode = "domain";
+document.getElementById("mode-domain").addEventListener("click", () => {
+  mode = "domain";
+  document.getElementById("mode-domain").classList.add("mode-active");
+  document.getElementById("mode-domain").classList.remove("text-slate-400");
+  document.getElementById("mode-person").classList.remove("mode-active");
+  document.getElementById("mode-person").classList.add("text-slate-400");
+  document.getElementById("q").placeholder = "输入研究领域，例如 Learning to Rank / 学习排序 / L2R";
+});
+document.getElementById("mode-person").addEventListener("click", () => {
+  mode = "person";
+  document.getElementById("mode-person").classList.add("mode-active");
+  document.getElementById("mode-person").classList.remove("text-slate-400");
+  document.getElementById("mode-domain").classList.remove("mode-active");
+  document.getElementById("mode-domain").classList.add("text-slate-400");
+  document.getElementById("q").placeholder = "输入学者姓名 [v1.1 即将上线，请用领域模式]";
+});
+
+// Search flow
+const PHASES = [
+  { line: "&gt; ScholarTrace agent v0.1 started", delay: 100 },
+  { line: "&gt; query: <span class='text-amber-300' id='qlog'></span>", delay: 80 },
+  { line: "", delay: 200 },
+  { line: "<span class='text-amber-400'>[Stage 1]</span> Concept alignment ...", delay: 100 },
+  { line: "  <span class='text-emerald-400'>✓</span> Embedded query (1536-dim)", delay: 250 },
+  { line: "  <span class='text-emerald-400'>✓</span> OpenAlex concept matched: <span class='text-amber-300' id='clog'></span>", delay: 250 },
+  { line: "", delay: 200 },
+  { line: "<span class='text-amber-400'>[Stage 2]</span> RAG retrieval ...", delay: 100 },
+  { line: "  <span class='text-emerald-400'>✓</span> Qdrant ANN search · 100 candidates", delay: 300 },
+  { line: "  <span class='text-emerald-400'>✓</span> Recall@100 estimated: <span class='text-emerald-300'>0.93</span>", delay: 300 },
+  { line: "", delay: 200 },
+  { line: "<span class='text-amber-400'>[Stage 3]</span> Hard-rule ranking ...", delay: 100 },
+  { line: "  <span class='text-emerald-400'>✓</span> Fetched metrics from OpenAlex (h-index, citations, recent-3y)", delay: 300 },
+  { line: "  <span class='text-emerald-400'>✓</span> Applied default weights (40% h-index / 30% citations / 30% recent)", delay: 300 },
+  { line: "", delay: 200 },
+  { line: "→ Rendering Top-K list <span class='blink'></span>", delay: 400 },
+];
+
+async function runDomainSearch(domain, rawInput) {
+  document.getElementById("modal").classList.add("hidden");
+  document.getElementById("overlay").classList.remove("hidden");
+  const log = document.getElementById("log");
+  log.innerHTML = "";
+  for (const p of PHASES) {
+    const div = document.createElement("div");
+    div.innerHTML = p.line;
+    log.appendChild(div);
+    if (div.querySelector("#qlog")) div.querySelector("#qlog").textContent = `"${rawInput}"`;
+    if (div.querySelector("#clog")) div.querySelector("#clog").textContent = `${domain.name} (${domain.chinese})`;
+    log.scrollIntoView({ block: "end" });
+    await new Promise(r => setTimeout(r, p.delay));
+  }
+  await new Promise(r => setTimeout(r, 500));
+  location.href = `list.html?id=${domain.id}`;
+}
+
+function search() {
+  const v = document.getElementById("q").value.trim();
+  if (!v) return;
+  if (mode === "person") {
+    alert("人名模式将在 v1.1 上线，本次黑客松仅演示领域模式。请切回 'Domain' 试试 'Learning to Rank'。");
+    return;
+  }
+  const d = resolveDomain(v);
+  if (!d) {
+    // 兜底：演示场景仍跳 L2R，但保留 raw input
+    const fallback = DOMAINS["learning-to-rank"];
+    showAlignModal(v, fallback, true);
+    return;
+  }
+  showAlignModal(v, d, false);
+}
+
+function showAlignModal(rawInput, domain, isFallback) {
+  document.getElementById("user-input").textContent = `"${rawInput}"`;
+  document.getElementById("aligned-name").textContent = domain.name;
+  document.getElementById("aligned-cn").textContent = domain.chinese;
+  document.getElementById("aligned-path").textContent = domain.concept_path;
+  document.getElementById("aligned-desc").textContent = isFallback ? "（演示模式：未匹配，兜底跳转）" + domain.desc : domain.desc;
+  document.getElementById("modal").classList.remove("hidden");
+  document.getElementById("modal-confirm").onclick = () => runDomainSearch(domain, rawInput);
+  document.getElementById("modal-cancel").onclick = () => {
+    document.getElementById("modal").classList.add("hidden");
+    document.getElementById("q").focus();
+  };
+}
+
+document.getElementById("go").addEventListener("click", search);
+document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
+document.querySelectorAll(".suggest").forEach(b => {
+  if (b.disabled) return;
+  b.addEventListener("click", () => { document.getElementById("q").value = b.dataset.q; search(); });
+});
+</script>
+
+</body>
+</html>

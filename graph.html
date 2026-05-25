@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScholarTrace · Knowledge Graph</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { background: #0a0e1a; color: #e2e8f0; }
+  body { font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .font-serif-zh { font-family: "Noto Serif SC", serif; }
+  .font-mono { font-family: "JetBrains Mono", monospace; }
+  ::selection { background: #f59e0b; color: #0a0e1a; }
+  #graph { background: radial-gradient(circle at 50% 50%, #131a2e 0%, #0a0e1a 100%); border-radius: 12px; }
+  .panel { background: #0f1424; border: 1px solid #1e293b; border-radius: 12px; }
+  .tag-btn { transition: all 0.15s; }
+  .tag-btn.active { background: #f59e0b; color: #0a0e1a; }
+  .progress-bar { background: linear-gradient(90deg, #f59e0b, #fb923c); transition: width 0.6s; }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.6); } 50% { box-shadow: 0 0 0 8px rgba(245,158,11,0); } }
+  .reading-step { counter-increment: rs; }
+  .reading-step::before { content: counter(rs); display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #f59e0b; color: #0a0e1a; font-size: 11px; font-weight: 700; margin-right: 10px; font-family: "JetBrains Mono"; }
+  .reading-list { counter-reset: rs; }
+  .scroll-y { overflow-y: auto; max-height: calc(100vh - 200px); scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+  .scroll-y::-webkit-scrollbar { width: 6px; } .scroll-y::-webkit-scrollbar-track { background: transparent; } .scroll-y::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<header class="px-6 py-4 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-950/80 backdrop-blur z-40">
+  <div class="flex items-center gap-4">
+    <a href="index.html" class="flex items-center gap-3 hover:opacity-80">
+      <div class="w-8 h-8 rounded-md bg-amber-500 flex items-center justify-center font-bold text-slate-900">ST</div>
+      <p class="font-semibold tracking-wide">ScholarTrace</p>
+    </a>
+    <span class="text-slate-700">/</span>
+    <a id="back-list" class="text-sm text-slate-400 hover:text-amber-300">← 返回排名</a>
+    <span class="text-slate-700">/</span>
+    <span id="field-tag" class="text-xs px-2 py-1 rounded bg-slate-800 text-amber-300 font-mono"></span>
+  </div>
+  <div class="flex items-center gap-3 text-xs">
+    <div class="flex items-center gap-2 text-slate-500 font-mono">
+      <span id="status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+      <span id="status-text">骨架图渲染中</span>
+    </div>
+    <div class="w-32 h-1 rounded-full bg-slate-800 overflow-hidden">
+      <div id="progress" class="h-full progress-bar" style="width: 20%"></div>
+    </div>
+  </div>
+</header>
+
+<main class="grid grid-cols-12 gap-4 p-4" style="height: calc(100vh - 65px);">
+
+  <!-- 左：中心学者侧栏 -->
+  <aside class="col-span-12 md:col-span-3 panel p-5 scroll-y">
+    <p class="text-xs uppercase tracking-widest text-slate-500 mb-3">Center Scholar</p>
+    <div class="flex items-center gap-3 mb-4">
+      <div id="center-avatar" class="w-14 h-14 rounded-xl flex items-center justify-center text-2xl font-bold text-slate-900"></div>
+      <div class="min-w-0">
+        <h1 id="center-cn" class="font-serif-zh text-xl font-bold leading-tight truncate"></h1>
+        <p id="center-en" class="text-xs text-slate-400 truncate"></p>
+      </div>
+    </div>
+    <p id="center-inst" class="text-xs text-slate-400 leading-relaxed mb-3"></p>
+    <p id="center-role" class="text-sm text-amber-300 leading-snug mb-4"></p>
+
+    <div class="grid grid-cols-3 gap-2 mb-4 text-xs">
+      <div class="bg-slate-900/60 rounded-lg p-2 text-center">
+        <p class="text-[10px] text-slate-500">h-index</p>
+        <p id="m-h" class="text-base font-bold text-amber-400"></p>
+      </div>
+      <div class="bg-slate-900/60 rounded-lg p-2 text-center">
+        <p class="text-[10px] text-slate-500">cit</p>
+        <p id="m-c" class="text-base font-bold text-amber-400"></p>
+      </div>
+      <div class="bg-slate-900/60 rounded-lg p-2 text-center">
+        <p class="text-[10px] text-slate-500">3y</p>
+        <p id="m-r" class="text-base font-bold text-amber-400"></p>
+      </div>
+    </div>
+
+    <div id="center-links" class="flex gap-2 mb-5 text-xs"></div>
+
+    <div class="border-t border-slate-800 pt-4 mb-5">
+      <p class="text-xs uppercase tracking-widest text-slate-500 mb-2">研究主线</p>
+      <p id="research-line" class="text-sm text-slate-300 leading-relaxed"></p>
+    </div>
+
+    <div class="border-t border-slate-800 pt-4 mb-5">
+      <p class="text-xs uppercase tracking-widest text-slate-500 mb-2">代表论文</p>
+      <ul id="field-papers" class="space-y-2 text-xs"></ul>
+    </div>
+
+    <div class="border-t border-slate-800 pt-4">
+      <p class="text-xs uppercase tracking-widest text-slate-500 mb-3">推荐阅读顺序</p>
+      <ol id="reading" class="reading-list space-y-3 text-xs"></ol>
+    </div>
+  </aside>
+
+  <!-- 中：图谱 -->
+  <section class="col-span-12 md:col-span-6 flex flex-col gap-3">
+    <!-- 控制条 -->
+    <div class="flex items-center justify-between panel px-4 py-2.5">
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] text-slate-500 uppercase tracking-widest mr-1">Show:</span>
+        <button class="tag-btn active px-3 py-1 rounded-full bg-slate-800 text-xs" data-edge="all">全部</button>
+        <button class="tag-btn px-3 py-1 rounded-full bg-slate-800 text-xs text-slate-400 hover:text-amber-300" data-edge="mentorship">🩸 师承</button>
+        <button class="tag-btn px-3 py-1 rounded-full bg-slate-800 text-xs text-slate-400 hover:text-amber-300" data-edge="sibling">👯 同门</button>
+        <button class="tag-btn px-3 py-1 rounded-full bg-slate-800 text-xs text-slate-400 hover:text-amber-300" data-edge="coauthor">🤝 合作</button>
+      </div>
+      <div class="flex items-center gap-3 text-[10px] text-slate-500 font-mono">
+        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-400" style="box-shadow:0 0 0 2px #fbbf24"></span>本人</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>师承</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>同门</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>合作者</span>
+        <span class="text-slate-600">| 双击学者 = 切换中心</span>
+      </div>
+    </div>
+
+    <!-- 图谱画布 -->
+    <div class="relative flex-1 panel">
+      <div id="graph" class="w-full h-full"></div>
+      <div class="absolute top-3 right-3 text-[10px] text-slate-600 font-mono">
+        <p>滚轮缩放 · 拖拽节点</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右：节点详情面板 -->
+  <aside class="col-span-12 md:col-span-3 panel p-5 scroll-y">
+    <div class="flex items-center gap-2 mb-3">
+      <p class="text-xs uppercase tracking-widest text-slate-500">Node Detail</p>
+      <span id="hint-pulse" class="w-2 h-2 rounded-full bg-amber-400 pulse"></span>
+    </div>
+    <div id="node-panel">
+      <p class="text-sm text-slate-500 leading-relaxed">点击图谱中任意节点查看 LLM 生成的关联理由 · 代表论文 · 在本领域内的角色</p>
+      <p class="text-xs text-slate-600 mt-3 font-mono">double-click → re-center</p>
+    </div>
+  </aside>
+
+</main>
+
+<script>
+const params = new URLSearchParams(location.search);
+const centerId = params.get("id") || "tie-yan-liu";
+const fieldId = params.get("field") || "learning-to-rank";
+document.getElementById("back-list").href = `list.html?id=${fieldId}`;
+let DATA = null;
+let network = null;
+let activeEdgeFilter = "all";
+let aiJudged = new Set();
+
+fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
+  DATA = d;
+  document.getElementById("field-tag").textContent = d.name;
+  computeSiblings();
+  renderCenter();
+  renderGraph();
+
+  // SSE 假动画：渐进点亮 ✨
+  setTimeout(() => {
+    document.getElementById("status-text").textContent = "骨架渲染 ✓ · AI 重排开始";
+    document.getElementById("progress").style.width = "50%";
+    startAIStream();
+  }, 800);
+});
+
+function getScholar(id) { return DATA.scholars.find(s => s.id === id) || (DATA.mentors || []).find(m => m.id === id); }
+function getPaper(id) { return (DATA.papers || []).find(p => p.id === id); }
+function getNode(id) { return getScholar(id) || getPaper(id); }
+function isPaper(id) { return id && id.startsWith("paper-"); }
+
+// 4 类节点配色 · 全部圆形
+const ROLE_STYLE = {
+  self:     { bg: "#f59e0b", border: "#fbbf24", font: "#0a0e1a", shape: "circle", borderWidth: 4 },
+  mentor:   { bg: "#ef4444", border: "#fca5a5", font: "#fff",    shape: "circle", borderWidth: 1.5 },
+  sibling:  { bg: "#0ea5e9", border: "#7dd3fc", font: "#fff",    shape: "circle", borderWidth: 1.5 },
+  coauthor: { bg: "#10b981", border: "#6ee7b7", font: "#fff",    shape: "circle", borderWidth: 1.5 },
+};
+
+// 预计算 sibling 集合（与中心共博导的学者）
+let SIBLINGS = new Set();
+function computeSiblings() {
+  SIBLINGS.clear();
+  const myMentorIds = (DATA.mentorship_edges || [])
+    .filter(e => e.target === centerId)
+    .map(e => e.source);
+  (DATA.mentorship_edges || []).forEach(e => {
+    if (myMentorIds.includes(e.source) && e.target !== centerId) SIBLINGS.add(e.target);
+  });
+}
+
+function roleOf(id) {
+  if (id === centerId) return "self";
+  if ((DATA.mentors || []).some(m => m.id === id)) return "mentor";
+  if (SIBLINGS.has(id)) return "sibling";
+  return "coauthor";
+}
+
+function renderCenter() {
+  const s = getScholar(centerId);
+  if (!s) return;
+  document.title = `${s.chinese_name || s.name} · ${DATA.name} · ScholarTrace`;
+  const initial = s.chinese_name?.[0] || s.name[0];
+  const colors = { amber: "bg-amber-500", rose: "bg-rose-500", purple: "bg-purple-500", blue: "bg-blue-500", indigo: "bg-indigo-500", emerald: "bg-emerald-500", fuchsia: "bg-fuchsia-500", sky: "bg-sky-500", stone: "bg-stone-500", violet: "bg-violet-500", slate: "bg-slate-500" };
+  const av = document.getElementById("center-avatar");
+  av.classList.add(...(colors[s.avatar_color] || "bg-amber-500").split(" "));
+  av.textContent = initial;
+
+  document.getElementById("center-cn").textContent = s.chinese_name || s.name;
+  document.getElementById("center-en").textContent = s.chinese_name ? s.name : "";
+  document.getElementById("center-inst").textContent = s.institution;
+  document.getElementById("center-role").textContent = s.role_in_field;
+  if (s.metrics) {
+    document.getElementById("m-h").textContent = s.metrics.h_index;
+    document.getElementById("m-c").textContent = (s.metrics.total_citations / 1000).toFixed(0) + "k";
+    document.getElementById("m-r").textContent = (s.metrics.recent_3y_citations / 1000).toFixed(1) + "k";
+  } else {
+    document.getElementById("m-h").textContent = "—";
+    document.getElementById("m-c").textContent = "—";
+    document.getElementById("m-r").textContent = "—";
+  }
+  document.getElementById("research-line").textContent = s.research_line || s.evidence || "(此节点为 mentor，不参与领域排名)";
+
+  // 外部链接
+  const links = document.getElementById("center-links");
+  links.innerHTML = "";
+  if (s.homepage_url) {
+    links.innerHTML += `<a href="${s.homepage_url}" target="_blank" rel="noopener" class="flex-1 py-2 rounded-lg bg-slate-900/60 hover:bg-slate-800 border border-slate-800 hover:border-amber-500 text-slate-300 hover:text-amber-300 text-center transition">↗ 个人主页</a>`;
+  }
+  if (s.scholar_url) {
+    links.innerHTML += `<a href="${s.scholar_url}" target="_blank" rel="noopener" class="flex-1 py-2 rounded-lg bg-slate-900/60 hover:bg-slate-800 border border-slate-800 hover:border-amber-500 text-slate-300 hover:text-amber-300 text-center transition">↗ Scholar</a>`;
+  }
+
+  const scholarLink = title => `https://scholar.google.com/scholar?q=${encodeURIComponent(title)}`;
+
+  const fp = document.getElementById("field-papers");
+  fp.innerHTML = "";
+  (s.field_papers || []).forEach(p => {
+    const li = document.createElement("li");
+    li.className = "text-slate-300 leading-relaxed";
+    li.innerHTML = `<span class="text-slate-500 font-mono">${p.year}</span> <a href="${scholarLink(p.title)}" target="_blank" rel="noopener" class="hover:text-amber-300 transition">${p.title}</a> <span class="text-amber-400/70 ml-1">${p.citations} ★</span><br><span class="text-[10px] text-slate-500">${p.venue}</span>`;
+    fp.appendChild(li);
+  });
+
+  const r = document.getElementById("reading");
+  r.innerHTML = "";
+  (s.recommended_reading || []).forEach(item => {
+    const li = document.createElement("li");
+    li.className = "reading-step pl-1";
+    li.innerHTML = `<a href="${scholarLink(item.title)}" target="_blank" rel="noopener" class="text-slate-200 hover:text-amber-300 transition">${item.title}</a><br><span class="text-[10px] text-slate-500 leading-relaxed">${item.why} <span class="text-amber-500 ml-1">${item.difficulty}</span></span>`;
+    r.appendChild(li);
+  });
+}
+
+function renderGraph() {
+  // ===== 收集所有候选节点 =====
+  // self + 中心学者的 mentors + 中心学者的 coauthor scholars + 中心学者的 papers
+  const mentorEdges = (DATA.mentorship_edges || []).filter(e => e.source === centerId || e.target === centerId);
+  const coauthorEdges = DATA.edges.filter(e =>
+    e.type === "coauthor" && (e.source === centerId || e.target === centerId)
+  );
+
+  // 节点 id 集合（只学者，论文不在图里）
+  const nodeIds = new Set([centerId]);
+  mentorEdges.forEach(e => { nodeIds.add(e.source); nodeIds.add(e.target); });
+  coauthorEdges.forEach(e => { nodeIds.add(e.source); nodeIds.add(e.target); });
+
+  // 同门小彩蛋：张旭东也是 Tao Qin 的博导（如果两人都在图里，把这条边也加上）
+  const bonusEdges = (DATA.mentorship_edges || []).filter(e =>
+    nodeIds.has(e.source) && nodeIds.has(e.target) && !mentorEdges.includes(e)
+  );
+
+  // 把同门也加进节点集合（即使没 coauthor 边）
+  SIBLINGS.forEach(sid => nodeIds.add(sid));
+
+  // ===== 节点构建 =====
+  const SCHOLAR_SIZE = 22;
+  const visNodes = [];
+  nodeIds.forEach(id => {
+    const role = roleOf(id);
+    const style = ROLE_STYLE[role];
+    if (!style) return;
+    const isCenter = role === "self";
+    const judged = aiJudged.has(id);
+    const s = getScholar(id);
+    if (!s) return;
+    visNodes.push({
+      id, label: (s.chinese_name || s.name) + (judged && !isCenter ? "  ✨" : ""),
+      title: `${s.name}${s.chinese_name ? " (" + s.chinese_name + ")" : ""}\n${s.institution}${s.metrics ? "\nh=" + s.metrics.h_index + " · " + (s.metrics.total_citations/1000).toFixed(0) + "k cit" : ""}`,
+      shape: style.shape, size: SCHOLAR_SIZE,
+      font: { color: style.font, size: isCenter ? 14 : 13, face: "Inter, sans-serif", strokeWidth: 0, bold: isCenter },
+      color: { background: style.bg, border: style.border, highlight: { background: style.bg, border: "#f59e0b" } },
+      borderWidth: style.borderWidth,
+      margin: { top: 10, right: 14, bottom: 10, left: 14 },
+      _role: role, _meta: s
+    });
+  });
+
+  // ===== 边构建 =====
+  // 师承（灰虚线，人-人）
+  const mentorshipVisEdges = [...mentorEdges, ...bonusEdges].map((e, i) => ({
+    id: `m${i}`, from: e.source, to: e.target,
+    arrows: "", dashes: [6, 4],
+    color: { color: "#94a3b8", opacity: 0.55 },
+    width: 1.4, smooth: { type: "continuous" },
+    _meta: e, _type: "mentorship"
+  }));
+  // 同门（蓝色，人-人）—— 中心 ↔ 每个 sibling
+  const siblingVisEdges = [...SIBLINGS].map((sid, i) => ({
+    id: `s${i}`, from: centerId, to: sid,
+    arrows: "", dashes: [6, 4],
+    color: { color: "#7dd3fc", opacity: 0.55 },
+    width: 1.4, smooth: { type: "continuous" },
+    _meta: { source: centerId, target: sid, type: "sibling", evidence: "共博导（同门 sibling）" },
+    _type: "sibling"
+  }));
+  // 合作（灰虚线，人-人）—— sibling 已经用专门边表达了，coauthor 边跳过 sibling
+  const coauthorVisEdges = coauthorEdges
+    .filter(e => {
+      const other = e.source === centerId ? e.target : e.source;
+      return !SIBLINGS.has(other);
+    })
+    .map((e, i) => ({
+      id: `c${i}`, from: e.source, to: e.target,
+      arrows: "", dashes: [6, 4],
+      color: { color: "#94a3b8", opacity: 0.55 },
+      width: Math.max(1, Math.min(4, Math.log(e.weight + 1) * 0.6)),
+      smooth: { type: "continuous" },
+      _meta: e, _type: "coauthor"
+    }));
+
+  let allEdges = [];
+  if (activeEdgeFilter === "all" || activeEdgeFilter === "mentorship") allEdges = allEdges.concat(mentorshipVisEdges);
+  if (activeEdgeFilter === "all" || activeEdgeFilter === "sibling")    allEdges = allEdges.concat(siblingVisEdges);
+  if (activeEdgeFilter === "all" || activeEdgeFilter === "coauthor")   allEdges = allEdges.concat(coauthorVisEdges);
+
+  const data = { nodes: new vis.DataSet(visNodes), edges: new vis.DataSet(allEdges) };
+  if (network) network.destroy();
+  network = new vis.Network(document.getElementById("graph"), data, {
+    physics: {
+      enabled: true,
+      barnesHut: { gravitationalConstant: -8000, springLength: 160, springConstant: 0.03, damping: 0.4 },
+      stabilization: { iterations: 260 }
+    },
+    interaction: { hover: true, tooltipDelay: 200, zoomView: true }
+  });
+
+  network.on("click", p => {
+    if (p.nodes.length) showNodeDetail(p.nodes[0], data);
+  });
+  network.on("doubleClick", p => {
+    if (p.nodes.length && p.nodes[0] !== centerId) {
+      location.href = `graph.html?id=${p.nodes[0]}&field=${fieldId}`;
+    }
+  });
+}
+
+function showNodeDetail(nodeId, data) {
+  document.getElementById("hint-pulse").classList.remove("pulse");
+  const role = roleOf(nodeId);
+
+  // ===== 学者节点（self / mentor / sibling / coauthor） =====
+  const s = getScholar(nodeId);
+  if (!s) return;
+  const isCenter = role === "self";
+  const isMentor = role === "mentor";
+  const isSibling = role === "sibling";
+  const roleLabel = { self: "🟡 当前中心", mentor: "🩸 师承", sibling: "👯 同门", coauthor: "🌿 合作者" }[role] || "⚪ 其他";
+  const initial = s.chinese_name?.[0] || s.name[0];
+  const judged = aiJudged.has(s.id);
+  const colorMap = { amber: "bg-amber-500", rose: "bg-rose-500", emerald: "bg-emerald-500", purple: "bg-purple-500", blue: "bg-blue-500", indigo: "bg-indigo-500", fuchsia: "bg-fuchsia-500", sky: "bg-sky-500", stone: "bg-stone-500", violet: "bg-violet-500", slate: "bg-slate-500" };
+  const avBg = colorMap[s.avatar_color] || "bg-slate-500";
+
+  // 找出与 center 的关系边（mentorship / sibling / coauthor）
+  let relHtml = "";
+  if (!isCenter) {
+    const me = (DATA.mentorship_edges || []).find(e =>
+      (e.source === centerId && e.target === nodeId) || (e.target === centerId && e.source === nodeId)
+    );
+    const ce = DATA.edges.find(e =>
+      e.type === "coauthor" &&
+      ((e.source === centerId && e.target === nodeId) || (e.target === centerId && e.source === nodeId))
+    );
+    if (me) {
+      relHtml += `<div class="mt-3 p-3 rounded-lg bg-rose-500/10 border border-rose-700/40">
+        <p class="text-xs text-rose-300 font-mono mb-1">🩸 师承 · ${me.subtype || ""}</p>
+        <p class="text-xs text-slate-300 leading-relaxed">${me.evidence}</p>
+      </div>`;
+    }
+    if (isSibling) {
+      // 找共同的 mentor 名字
+      const myMentorIds = (DATA.mentorship_edges || []).filter(e => e.target === centerId).map(e => e.source);
+      const shared = (DATA.mentorship_edges || [])
+        .filter(e => myMentorIds.includes(e.source) && e.target === nodeId)
+        .map(e => {
+          const m = getScholar(e.source);
+          return m ? (m.chinese_name || m.name) : e.source;
+        });
+      relHtml += `<div class="mt-3 p-3 rounded-lg bg-sky-500/10 border border-sky-700/40">
+        <p class="text-xs text-sky-300 font-mono mb-1">👯 同门 · 共博导 ${shared.join(", ")}</p>
+        <p class="text-xs text-slate-300 leading-relaxed">学术 sibling 关系，共享博士导师${ce ? "；并有 " + ce.weight + " 篇共著论文" : ""}</p>
+      </div>`;
+    }
+    if (ce && !isSibling) {
+      relHtml += `<div class="mt-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-700/40">
+        <p class="text-xs text-emerald-300 font-mono mb-1">🤝 合作 · weight=${ce.weight}</p>
+        <p class="text-xs text-slate-300 leading-relaxed">${ce.evidence}</p>
+      </div>`;
+    }
+  }
+
+  const aiBlurb = s.llm_blurb || s.evidence || "(LLM 关联理由待生成)";
+
+  const scholarLink = title => `https://scholar.google.com/scholar?q=${encodeURIComponent(title)}`;
+  const papersHtml = (s.field_papers || []).slice(0, 3).map(p => `
+    <li class="text-xs text-slate-400 leading-relaxed">
+      <span class="text-slate-500 font-mono">${p.year}</span>
+      <a href="${scholarLink(p.title)}" target="_blank" rel="noopener" class="hover:text-amber-300 transition">${p.title}</a>
+      <span class="text-amber-400/70 ml-1">${p.citations} ★</span>
+    </li>
+  `).join("");
+
+  const metricsHtml = s.metrics ? `
+    <div class="grid grid-cols-3 gap-1.5 mb-4 text-[10px]">
+      <div class="bg-slate-900/60 rounded p-1.5 text-center"><p class="text-slate-500">h</p><p class="text-sm font-bold text-amber-400">${s.metrics.h_index}</p></div>
+      <div class="bg-slate-900/60 rounded p-1.5 text-center"><p class="text-slate-500">cit</p><p class="text-sm font-bold text-amber-400">${(s.metrics.total_citations/1000).toFixed(0)}k</p></div>
+      <div class="bg-slate-900/60 rounded p-1.5 text-center"><p class="text-slate-500">field#</p><p class="text-sm font-bold text-amber-400">${s.metrics.field_papers}</p></div>
+    </div>` : `<p class="text-[10px] text-slate-600 italic mb-3">(mentor 节点，不参与领域排名)</p>`;
+
+  document.getElementById("node-panel").innerHTML = `
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold text-slate-900 ${avBg}">${initial}</div>
+      <div class="min-w-0">
+        <h2 class="font-serif-zh text-lg font-bold truncate">${s.chinese_name || s.name}</h2>
+        ${s.chinese_name ? `<p class="text-[10px] text-slate-500 truncate">${s.name}</p>` : ""}
+      </div>
+    </div>
+    <p class="text-xs text-slate-400 mb-1">${s.institution}</p>
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-[10px] text-slate-500">${roleLabel}</span>
+      ${judged ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono">✨ AI ✓</span>` : ""}
+    </div>
+    ${metricsHtml}
+    <div class="border-t border-slate-800 pt-3 mb-3">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-1.5">LLM 关联理由</p>
+      <p class="text-xs text-slate-200 leading-relaxed italic">${aiBlurb}</p>
+    </div>
+    ${relHtml ? `<div class="border-t border-slate-800 pt-3">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-1.5">与中心学者的关系</p>
+      ${relHtml}
+    </div>` : ""}
+    ${papersHtml ? `<div class="border-t border-slate-800 pt-3 mt-3">
+      <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-2">该领域代表作 (top 3)</p>
+      <ul class="space-y-2">${papersHtml}</ul>
+    </div>` : ""}
+    <div class="border-t border-slate-800 pt-3 mt-3 flex gap-2 text-xs">
+      ${s.homepage_url ? `<a href="${s.homepage_url}" target="_blank" rel="noopener" class="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-300 text-center transition">↗ 个人主页</a>` : ""}
+      ${s.scholar_url ? `<a href="${s.scholar_url}" target="_blank" rel="noopener" class="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-amber-300 text-center transition">↗ Scholar</a>` : ""}
+    </div>
+    ${!isCenter ? `<button onclick="location.href='graph.html?id=${s.id}&field=${fieldId}'" class="w-full mt-3 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-medium">
+      🎯 切换为中心 (or 双击节点)
+    </button>` : ""}
+  `;
+}
+
+// 边筛选
+document.querySelectorAll(".tag-btn").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".tag-btn").forEach(x => { x.classList.remove("active"); x.classList.remove("text-slate-300"); x.classList.add("text-slate-400"); });
+    b.classList.add("active");
+    b.classList.remove("text-slate-400");
+    activeEdgeFilter = b.dataset.edge;
+    renderGraph();
+  });
+});
+
+// 假 SSE 流：只对学者节点（mentor + coauthor）做 ✨ AI judge，paper 节点不需要
+async function startAIStream() {
+  aiJudged.add(centerId);
+  // mentor / sibling 节点直接标记 judged（不慢慢点亮）
+  (DATA.mentors || []).forEach(m => aiJudged.add(m.id));
+  SIBLINGS.forEach(sid => aiJudged.add(sid));
+
+  // 中心的合作学者（非 sibling）
+  const coauthors = DATA.scholars.filter(s =>
+    s.relation_to_center === "coauthor" && !SIBLINGS.has(s.id) &&
+    DATA.edges.some(e => e.type === "coauthor" &&
+      ((e.source === centerId && e.target === s.id) || (e.target === centerId && e.source === s.id)))
+  );
+  coauthors.sort((a, b) => (b.metrics?.centrality || 0) - (a.metrics?.centrality || 0));
+
+  for (let i = 0; i < coauthors.length; i++) {
+    await new Promise(r => setTimeout(r, 350 + Math.random() * 250));
+    aiJudged.add(coauthors[i].id);
+    renderGraph();
+    const pct = 50 + (i + 1) / Math.max(coauthors.length, 1) * 50;
+    document.getElementById("progress").style.width = pct + "%";
+  }
+  document.getElementById("status-text").textContent = "AI 重排完成 · ✨ All judged";
+  document.getElementById("status-dot").classList.remove("bg-amber-400", "animate-pulse");
+  document.getElementById("status-dot").classList.add("bg-emerald-400");
+}
+</script>
+
+</body>
+</html>

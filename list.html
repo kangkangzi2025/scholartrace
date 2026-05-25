@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScholarTrace · Ranking</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { background: #0a0e1a; color: #e2e8f0; }
+  body { font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .font-serif-zh { font-family: "Noto Serif SC", serif; }
+  .font-mono { font-family: "JetBrains Mono", monospace; }
+  ::selection { background: #f59e0b; color: #0a0e1a; }
+
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 6px; background: #1e293b; border-radius: 4px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #f59e0b; cursor: pointer; box-shadow: 0 0 8px rgba(245,158,11,0.5);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #f59e0b; cursor: pointer; box-shadow: 0 0 8px rgba(245,158,11,0.5); border: 0;
+  }
+  .ai-glow { box-shadow: 0 0 0 1px rgba(245,158,11,0.6), 0 0 24px rgba(245,158,11,0.15); transition: all 0.4s; }
+  .rank-card { transition: transform 0.3s ease, opacity 0.3s ease; }
+  .ai-badge { animation: pop 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes pop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .progress-bar { background: linear-gradient(90deg, #f59e0b, #fb923c); transition: width 0.4s; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<header class="px-8 py-5 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-950/80 backdrop-blur z-40">
+  <a href="index.html" class="flex items-center gap-3 hover:opacity-80">
+    <div class="w-8 h-8 rounded-md bg-amber-500 flex items-center justify-center font-bold text-slate-900">ST</div>
+    <div>
+      <p class="font-semibold tracking-wide">ScholarTrace</p>
+      <p class="text-[10px] text-slate-400 -mt-0.5">← 返回首页</p>
+    </div>
+  </a>
+  <div class="flex items-center gap-3 text-xs">
+    <div class="flex items-center gap-2 text-slate-500 font-mono">
+      <span id="ssestatus-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+      <span id="ssestatus">骨架渲染中</span>
+    </div>
+    <div class="w-32 h-1 rounded-full bg-slate-800 overflow-hidden">
+      <div id="progress" class="h-full progress-bar" style="width: 30%"></div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+
+  <!-- Field title -->
+  <section class="mb-6">
+    <p class="text-xs font-mono text-amber-400 mb-1" id="concept-path"></p>
+    <h1 class="font-serif-zh text-4xl font-bold" id="field-name"></h1>
+    <p class="text-slate-400 mt-1" id="field-desc"></p>
+  </section>
+
+  <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
+
+    <!-- 左：滑块面板 -->
+    <aside class="space-y-5">
+      <div class="rounded-xl bg-slate-900/60 border border-slate-800 p-5 sticky top-24">
+        <p class="text-xs uppercase tracking-widest text-slate-500 mb-4">影响力权重 · Hard Rules</p>
+
+        <div class="mb-5">
+          <div class="flex justify-between mb-2 text-sm">
+            <span class="text-slate-300">学术沉淀</span>
+            <span class="text-amber-400 font-mono" id="w1-val">40%</span>
+          </div>
+          <input id="w1" type="range" min="0" max="100" value="40">
+          <p class="text-[10px] text-slate-500 mt-1.5">h-index</p>
+        </div>
+
+        <div class="mb-5">
+          <div class="flex justify-between mb-2 text-sm">
+            <span class="text-slate-300">学术影响力</span>
+            <span class="text-amber-400 font-mono" id="w2-val">30%</span>
+          </div>
+          <input id="w2" type="range" min="0" max="100" value="30">
+          <p class="text-[10px] text-slate-500 mt-1.5">log(total citations)</p>
+        </div>
+
+        <div class="mb-5">
+          <div class="flex justify-between mb-2 text-sm">
+            <span class="text-slate-300">近期活跃度</span>
+            <span class="text-amber-400 font-mono" id="w3-val">30%</span>
+          </div>
+          <input id="w3" type="range" min="0" max="100" value="30">
+          <p class="text-[10px] text-slate-500 mt-1.5">recent 3y citations</p>
+        </div>
+
+        <div class="border-t border-slate-800 pt-4 text-xs">
+          <p class="text-slate-500 font-mono">公式：</p>
+          <p class="text-slate-400 mt-1 leading-relaxed">Score = w₁·H<br>　　 + w₂·log(Cit)<br>　　 + w₃·RecentCit</p>
+          <p class="text-[10px] text-slate-600 mt-3" id="weight-sum"></p>
+        </div>
+
+        <div class="border-t border-slate-800 pt-4 mt-4">
+          <p class="text-xs text-slate-500 mb-2">显示 Top K</p>
+          <div class="flex gap-2">
+            <button class="k-btn px-3 py-1 rounded bg-amber-500 text-slate-900 text-sm font-medium" data-k="10">10</button>
+            <button class="k-btn px-3 py-1 rounded bg-slate-800 text-slate-300 text-sm hover:bg-slate-700" data-k="20">20</button>
+            <button class="k-btn px-3 py-1 rounded bg-slate-800 text-slate-300 text-sm hover:bg-slate-700" data-k="50">50</button>
+          </div>
+        </div>
+
+        <button id="reset" class="w-full mt-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-400">重置为默认权重</button>
+      </div>
+    </aside>
+
+    <!-- 右：学者列表 -->
+    <section>
+      <div class="flex items-baseline justify-between mb-4">
+        <h2 class="text-sm uppercase tracking-widest text-slate-500">Ranked Scholars</h2>
+        <p class="text-xs text-slate-500" id="meta-info"></p>
+      </div>
+      <div id="list" class="space-y-3"></div>
+    </section>
+
+  </div>
+
+  <footer class="mt-16 mb-12 text-center text-xs text-slate-600">
+    数据来源 mock · 真实版本由 OpenAlex / Semantic Scholar 实时支持
+  </footer>
+</main>
+
+<script>
+const params = new URLSearchParams(location.search);
+const fieldId = params.get("id") || "learning-to-rank";
+let K = 10;
+let DATA = null;
+let aiJudged = new Set();  // 已 LLM 评分的 scholar id
+let aiScores = {};  // {id: score}
+
+fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
+  DATA = d;
+  document.getElementById("concept-path").textContent = d.concept_path;
+  document.getElementById("field-name").textContent = `${d.name} · ${d.chinese_name}`;
+  document.getElementById("field-desc").textContent = d.description;
+  document.getElementById("meta-info").textContent = `RAG 召回 100 候选 → Top ${K} (基础排序 by hard-rule, AI 重排进行中)`;
+
+  // Phase 1: 立即渲染骨架（硬规则排序）
+  setTimeout(() => {
+    renderList();
+    document.getElementById("progress").style.width = "55%";
+    document.getElementById("ssestatus").textContent = "骨架已渲染 · AI 重排开始";
+    // Phase 2: SSE 流式逐个点亮 ✨
+    startAIStream();
+  }, 300);
+});
+
+function getWeights() {
+  const w1 = parseInt(document.getElementById("w1").value);
+  const w2 = parseInt(document.getElementById("w2").value);
+  const w3 = parseInt(document.getElementById("w3").value);
+  const sum = w1 + w2 + w3 || 1;
+  return { w1: w1/sum, w2: w2/sum, w3: w3/sum, raw: {w1, w2, w3, sum} };
+}
+
+function influenceScore(s, w) {
+  return w.w1 * s.metrics.h_index +
+         w.w2 * Math.log(Math.max(s.metrics.total_citations, 1)) * 10 +
+         w.w3 * Math.sqrt(Math.max(s.metrics.recent_3y_citations, 0)) * 1.5;
+}
+
+function renderList() {
+  const w = getWeights();
+  const ranked = DATA.scholars.map(s => ({
+    ...s,
+    score: influenceScore(s, w)
+  })).sort((a, b) => b.score - a.score).slice(0, K);
+
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const maxH = Math.max(...DATA.scholars.map(s => s.metrics.h_index));
+  const maxC = Math.max(...DATA.scholars.map(s => s.metrics.total_citations));
+  const maxR = Math.max(...DATA.scholars.map(s => s.metrics.recent_3y_citations));
+
+  ranked.forEach((s, idx) => {
+    const initial = s.chinese_name?.[0] || s.name[0];
+    const judged = aiJudged.has(s.id);
+    const aiScore = aiScores[s.id];
+
+    const card = document.createElement("a");
+    card.href = `graph.html?id=${s.id}&field=${fieldId}`;
+    card.className = `rank-card block p-5 rounded-xl bg-slate-900/50 border ${judged ? 'border-amber-700/40 ai-glow' : 'border-slate-800'} hover:border-amber-500 transition`;
+
+    const pctH = (s.metrics.h_index / maxH * 100).toFixed(0);
+    const pctC = (s.metrics.total_citations / maxC * 100).toFixed(0);
+    const pctR = (s.metrics.recent_3y_citations / maxR * 100).toFixed(0);
+
+    card.innerHTML = `
+      <div class="flex items-start gap-4">
+        <div class="shrink-0 flex flex-col items-center gap-1">
+          <span class="font-mono text-sm text-slate-500">#${idx + 1}</span>
+          <div class="w-14 h-14 rounded-xl bg-${s.avatar_color}-500/80 flex items-center justify-center text-2xl font-bold text-slate-900">${initial}</div>
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <div class="flex items-baseline gap-2 mb-1">
+            <h3 class="text-lg font-semibold text-slate-100">${s.chinese_name || s.name}</h3>
+            ${s.chinese_name ? `<span class="text-sm text-slate-500">${s.name}</span>` : ""}
+            ${judged ? `<span class="ml-2 ai-badge inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono">✨ AI ${aiScore.toFixed(1)}/10</span>` : ""}
+          </div>
+          <p class="text-xs text-slate-400 mb-2">${s.institution}</p>
+          <p class="text-sm text-slate-300 leading-snug mb-3">${s.role_in_field}</p>
+
+          <div class="grid grid-cols-3 gap-3 text-xs">
+            <div>
+              <div class="flex justify-between mb-0.5"><span class="text-slate-500">h-index</span><span class="text-amber-400 font-mono">${s.metrics.h_index}</span></div>
+              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500" style="width:${pctH}%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-0.5"><span class="text-slate-500">total cit</span><span class="text-amber-400 font-mono">${(s.metrics.total_citations/1000).toFixed(0)}k</span></div>
+              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500" style="width:${pctC}%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between mb-0.5"><span class="text-slate-500">recent 3y</span><span class="text-amber-400 font-mono">${(s.metrics.recent_3y_citations/1000).toFixed(1)}k</span></div>
+              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500" style="width:${pctR}%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="shrink-0 text-right">
+          <p class="text-[10px] text-slate-500 mb-1">field papers</p>
+          <p class="text-2xl font-bold text-slate-200">${s.metrics.field_papers}</p>
+          <p class="text-[10px] text-slate-600 mt-2 font-mono">score ${s.score.toFixed(1)}</p>
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+
+  document.getElementById("meta-info").textContent =
+    `RAG 召回 100 候选 → Top ${K} (${aiJudged.size}/${Math.min(K, DATA.scholars.length)} AI 评审)`;
+}
+
+// 权重滑块联动（不强制约束，但在底部显示 raw 和）
+["w1", "w2", "w3"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    const w = getWeights();
+    document.getElementById("w1-val").textContent = Math.round(w.w1 * 100) + "%";
+    document.getElementById("w2-val").textContent = Math.round(w.w2 * 100) + "%";
+    document.getElementById("w3-val").textContent = Math.round(w.w3 * 100) + "%";
+    document.getElementById("weight-sum").textContent = `(归一化前 raw 和: ${w.raw.sum})`;
+    if (DATA) renderList();
+  });
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  document.getElementById("w1").value = 40;
+  document.getElementById("w2").value = 30;
+  document.getElementById("w3").value = 30;
+  document.getElementById("w1").dispatchEvent(new Event("input"));
+});
+
+// K 选择
+document.querySelectorAll(".k-btn").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".k-btn").forEach(x => { x.classList.remove("bg-amber-500", "text-slate-900", "font-medium"); x.classList.add("bg-slate-800", "text-slate-300"); });
+    b.classList.remove("bg-slate-800", "text-slate-300");
+    b.classList.add("bg-amber-500", "text-slate-900", "font-medium");
+    K = parseInt(b.dataset.k);
+    if (DATA) renderList();
+  });
+});
+
+// SSE 假动画：每个学者按顺序点亮 AI 评分
+async function startAIStream() {
+  const sorted = DATA.scholars.map(s => ({...s, score: influenceScore(s, getWeights())}))
+                              .sort((a, b) => b.score - a.score);
+  for (let i = 0; i < Math.min(K, sorted.length); i++) {
+    await new Promise(r => setTimeout(r, 400 + Math.random() * 200));
+    const s = sorted[i];
+    aiJudged.add(s.id);
+    // mock AI 评分：跟硬规则有相关性，但略加扰动
+    aiScores[s.id] = Math.min(10, Math.max(6, 7.5 + (s.metrics.centrality - 0.5) * 4 + (Math.random() - 0.5) * 0.8));
+    renderList();
+    const pct = 55 + (i + 1) / Math.min(K, sorted.length) * 45;
+    document.getElementById("progress").style.width = pct + "%";
+  }
+  document.getElementById("ssestatus").textContent = "AI 重排完成";
+  document.getElementById("ssestatus-dot").classList.remove("bg-amber-400", "animate-pulse");
+  document.getElementById("ssestatus-dot").classList.add("bg-emerald-400");
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1110 @@
+{
+  "id": "learning-to-rank",
+  "name": "Learning to Rank",
+  "chinese_name": "学习排序",
+  "aliases": [
+    "L2R",
+    "LTR",
+    "Learning to Rank",
+    "学习排序",
+    "排序学习",
+    "ranking model",
+    "search ranking",
+    "IR ranking"
+  ],
+  "concept_path": "CS → AI → Machine Learning → Information Retrieval → Learning to Rank",
+  "description": "用机器学习方法解决排序问题，源自信息检索 / 搜索引擎排序。pointwise → pairwise → listwise 三大流派；2005-2012 黄金期，2017 后并入 DL 范式。",
+  "active_period": "2005-2018 (黄金期), 2018+ (并入深度学习/embedding ranking)",
+  "key_landmark_papers": [
+    {
+      "id": "ranknet-2005",
+      "title": "Learning to Rank using Gradient Descent (RankNet)",
+      "venue": "ICML 2005",
+      "by": "burges",
+      "citations": 3852
+    },
+    {
+      "id": "svm-rank-2002",
+      "title": "Optimizing Search Engines using Clickthrough Data",
+      "venue": "KDD 2002",
+      "by": "joachims",
+      "citations": 6800
+    },
+    {
+      "id": "bm25-1994",
+      "title": "Some Simple Effective Approximations to the 2-Poisson Model (BM25)",
+      "venue": "SIGIR 1994",
+      "by": "robertson",
+      "citations": 4500
+    },
+    {
+      "id": "listwise-2007",
+      "title": "Learning to Rank: Pairwise → Listwise Approach",
+      "venue": "ICML 2007",
+      "by": "tie-yan-liu",
+      "citations": 3048
+    },
+    {
+      "id": "letor-textbook-2009",
+      "title": "Learning to Rank for Information Retrieval",
+      "venue": "Foundations and Trends 2009",
+      "by": "tie-yan-liu",
+      "citations": 4664
+    },
+    {
+      "id": "yahoo-challenge-2011",
+      "title": "Yahoo! Learning to Rank Challenge Overview",
+      "venue": "JMLR W&CP 2011",
+      "by": "chapelle",
+      "citations": 1100
+    }
+  ],
+  "scholars": [
+    {
+      "id": "tie-yan-liu",
+      "name": "Tie-Yan Liu",
+      "chinese_name": "刘铁岩",
+      "institution": "北京中关村学院",
+      "country": "CN",
+      "avatar_color": "amber",
+      "role_in_field": "listwise approach 提出人 · 教科书作者 · LETOR benchmark 建立",
+      "metrics": {
+        "h_index": 113,
+        "total_citations": 101387,
+        "recent_3y_citations": 12500,
+        "field_papers": 28,
+        "centrality": 0.92,
+        "consistency": 0.88
+      },
+      "field_papers": [
+        {
+          "title": "Learning to Rank for Information Retrieval (textbook)",
+          "venue": "F&T 2009",
+          "year": 2009,
+          "citations": 4664
+        },
+        {
+          "title": "Learning to Rank: From Pairwise Approach to Listwise Approach",
+          "venue": "ICML 2007",
+          "year": 2007,
+          "citations": 3048
+        },
+        {
+          "title": "LETOR: Benchmark Dataset for Research on Learning to Rank",
+          "venue": "SIGIR 2007 Workshop",
+          "year": 2007,
+          "citations": 1200
+        },
+        {
+          "title": "Query-level Loss Functions for Information Retrieval",
+          "venue": "IP&M 2008",
+          "year": 2008,
+          "citations": 320
+        },
+        {
+          "title": "Generalization Analysis of Listwise Learning-to-Rank Algorithms",
+          "venue": "ICML 2009",
+          "year": 2009,
+          "citations": 280
+        }
+      ],
+      "research_line": "从 2004 年信息检索方向切入，2007 年提出 listwise approach 是 L2R 三大流派的最后一块拼图，2009 年的《Learning to Rank for Information Retrieval》成为该领域教科书。2010 后由 L2R 切到 distributed DL → AI for Science，但 L2R 的核心贡献是把'排序'从启发式拉到统计学习的框架里。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "Learning to Rank: Pairwise → Listwise (ICML 2007)",
+          "why": "L2R 范式认知必读，理解为什么 listwise > pairwise > pointwise",
+          "difficulty": "★★"
+        },
+        {
+          "order": 2,
+          "title": "Learning to Rank for IR (F&T 2009)",
+          "why": "200 页教科书，把 L2R 的方法论框架打牢",
+          "difficulty": "★★★"
+        },
+        {
+          "order": 3,
+          "title": "LETOR Benchmark (SIGIR 2007 WS)",
+          "why": "了解 L2R 标准数据集的构造与评测维度",
+          "difficulty": "★"
+        },
+        {
+          "order": 4,
+          "title": "Query-level Loss (IP&M 2008)",
+          "why": "进入 loss design 细节，理解 query-level vs sample-level",
+          "difficulty": "★★★"
+        },
+        {
+          "order": 5,
+          "title": "Generalization Analysis of Listwise (ICML 2009)",
+          "why": "理论收尾——listwise 为什么 work",
+          "difficulty": "★★★★"
+        }
+      ],
+      "llm_blurb": "Tie-Yan Liu 是 L2R 教科书与 listwise 流派的核心定义者；他在 MSRA 2003-2024 期间建立了亚洲最大的 L2R 研究产出基地。",
+      "relation_to_center": "self",
+      "homepage_url": "https://www.bjzgca.edu.cn/teacher/e4bebfc09b254c6f8db87ceacea3b4d2",
+      "scholar_url": "https://scholar.google.com/citations?user=Nh832fgAAAAJ"
+    },
+    {
+      "id": "hang-li",
+      "name": "Hang Li",
+      "chinese_name": "李航",
+      "institution": "ByteDance AI Lab",
+      "country": "CN",
+      "avatar_color": "rose",
+      "role_in_field": "早期 L2R 共同开拓 · 与 TYLiu 合著 listwise 关键论文",
+      "metrics": {
+        "h_index": 88,
+        "total_citations": 45000,
+        "recent_3y_citations": 6800,
+        "field_papers": 22,
+        "centrality": 0.78,
+        "consistency": 0.65
+      },
+      "field_papers": [
+        {
+          "title": "Learning to Rank for IR and NLP (book)",
+          "venue": "Morgan & Claypool 2011",
+          "year": 2011,
+          "citations": 850
+        },
+        {
+          "title": "Listwise Approach (ICML 2007, with TYLiu)",
+          "venue": "ICML 2007",
+          "year": 2007,
+          "citations": 3048
+        },
+        {
+          "title": "Directly Optimizing Evaluation Measures (SVM-MAP)",
+          "venue": "SIGIR 2007",
+          "year": 2007,
+          "citations": 720
+        }
+      ],
+      "research_line": "与 Tie-Yan Liu 并列的早期 L2R 推动者；2010 年代后转向 NLP / deep learning，现为 ByteDance AI Lab 负责人。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "Learning to Rank for IR and NLP (book 2011)",
+          "why": "比 TYLiu 教科书更精简，NLP 视角",
+          "difficulty": "★★"
+        },
+        {
+          "order": 2,
+          "title": "Listwise Approach (ICML 2007)",
+          "why": "与 TYLiu 共著的奠基论文",
+          "difficulty": "★★"
+        }
+      ],
+      "llm_blurb": "与 Tie-Yan Liu 在 MSRA 2003-2012 期间深度合作，共著 35 篇论文（含 listwise approach 那篇）；现已转向 NLP 与基础模型，但 L2R 时期是他们最紧密的合作期。",
+      "relation_to_center": "coauthor",
+      "homepage_url": "https://www.hangli-hl.com/",
+      "scholar_url": "https://scholar.google.com/citations?user=nTl5mSwAAAAJ"
+    },
+    {
+      "id": "christopher-burges",
+      "name": "Christopher J. C. Burges",
+      "chinese_name": "",
+      "institution": "ex-Microsoft Research (retired)",
+      "country": "US",
+      "avatar_color": "purple",
+      "role_in_field": "RankNet / LambdaRank / LambdaMART 作者 · L2R 真正的鼻祖之一",
+      "metrics": {
+        "h_index": 68,
+        "total_citations": 38000,
+        "recent_3y_citations": 1500,
+        "field_papers": 16,
+        "centrality": 0.85,
+        "consistency": 0.42
+      },
+      "field_papers": [
+        {
+          "title": "Learning to Rank using Gradient Descent (RankNet)",
+          "venue": "ICML 2005",
+          "year": 2005,
+          "citations": 3852
+        },
+        {
+          "title": "Learning to Rank with Nonsmooth Cost Functions (LambdaRank)",
+          "venue": "NIPS 2006",
+          "year": 2006,
+          "citations": 1100
+        },
+        {
+          "title": "From RankNet to LambdaRank to LambdaMART: An Overview",
+          "venue": "MSR Tech Report 2010",
+          "year": 2010,
+          "citations": 1500
+        }
+      ],
+      "research_line": "2005 年 RankNet 是把神经网络用于 ranking 的奠基，2006 LambdaRank 解决了非光滑代价函数，2010 LambdaMART 把 Lambda 思想搬到 GBDT 上——这条 RankNet → LambdaMART 进化链统治了商业搜索引擎十年。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "RankNet (ICML 2005)",
+          "why": "起点，必读",
+          "difficulty": "★★"
+        },
+        {
+          "order": 2,
+          "title": "LambdaRank (NIPS 2006)",
+          "why": "为什么直接优化 IR metric 不可微也能做",
+          "difficulty": "★★★"
+        },
+        {
+          "order": 3,
+          "title": "RankNet to LambdaMART overview (MSR 2010)",
+          "why": "三代演进总结",
+          "difficulty": "★★"
+        }
+      ],
+      "llm_blurb": "Burges 是 RankNet/LambdaMART 谱系的奠基人；Tie-Yan Liu 多篇论文（包括 listwise approach）直接引用并对比 RankNet。两人没有共同发表，但学术对话频繁。",
+      "relation_to_center": "cite_only",
+      "homepage_url": "https://chrisburges.net/",
+      "scholar_url": "https://scholar.google.com/citations?user=KCFu5jgAAAAJ"
+    },
+    {
+      "id": "thorsten-joachims",
+      "name": "Thorsten Joachims",
+      "chinese_name": "",
+      "institution": "Cornell University",
+      "country": "US",
+      "avatar_color": "blue",
+      "role_in_field": "SVM-Rank 作者 · click model / counterfactual learning 派系开创者",
+      "metrics": {
+        "h_index": 115,
+        "total_citations": 68000,
+        "recent_3y_citations": 8200,
+        "field_papers": 24,
+        "centrality": 0.88,
+        "consistency": 0.78
+      },
+      "field_papers": [
+        {
+          "title": "Optimizing Search Engines using Clickthrough Data (SVM-Rank)",
+          "venue": "KDD 2002",
+          "year": 2002,
+          "citations": 6800
+        },
+        {
+          "title": "Training Linear SVMs in Linear Time",
+          "venue": "KDD 2006",
+          "year": 2006,
+          "citations": 2100
+        },
+        {
+          "title": "Unbiased Learning to Rank from Biased Feedback",
+          "venue": "WSDM 2017",
+          "year": 2017,
+          "citations": 850
+        }
+      ],
+      "research_line": "L2R 早期'pairwise'流派的代表人物；2017 后开创了 counterfactual / unbiased L2R 方向，让 L2R 在 2020 年代的搜索系统里继续发挥作用。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "SVM-Rank (KDD 2002)",
+          "why": "Pre-RankNet 时代的 L2R 起点",
+          "difficulty": "★★"
+        },
+        {
+          "order": 2,
+          "title": "Unbiased L2R (WSDM 2017)",
+          "why": "现代搜索系统 production 标配",
+          "difficulty": "★★★"
+        }
+      ],
+      "llm_blurb": "Joachims 是 L2R pairwise 流派代表；他的 SVM-Rank (KDD 2002) 比 RankNet 还早 3 年。Tie-Yan Liu 在 listwise 论文中明确把 SVM-Rank 作为 pairwise 的代表对比项。",
+      "relation_to_center": "cite_only",
+      "homepage_url": "https://www.cs.cornell.edu/people/tj/",
+      "scholar_url": "https://scholar.google.com/citations?user=Eu0lDPwAAAAJ"
+    },
+    {
+      "id": "olivier-chapelle",
+      "name": "Olivier Chapelle",
+      "chinese_name": "",
+      "institution": "Google (DeepMind)",
+      "country": "US",
+      "avatar_color": "indigo",
+      "role_in_field": "Yahoo L2R Challenge 组织者 · ERR (Expected Reciprocal Rank) 提出人",
+      "metrics": {
+        "h_index": 56,
+        "total_citations": 28000,
+        "recent_3y_citations": 2800,
+        "field_papers": 14,
+        "centrality": 0.72,
+        "consistency": 0.55
+      },
+      "field_papers": [
+        {
+          "title": "Yahoo! Learning to Rank Challenge Overview",
+          "venue": "JMLR W&CP 2011",
+          "year": 2011,
+          "citations": 1100
+        },
+        {
+          "title": "Expected Reciprocal Rank for Graded Relevance",
+          "venue": "CIKM 2009",
+          "year": 2009,
+          "citations": 980
+        },
+        {
+          "title": "A Dynamic Bayesian Network Click Model",
+          "venue": "WWW 2009",
+          "year": 2009,
+          "citations": 850
+        }
+      ],
+      "research_line": "2010 年组织 Yahoo L2R Challenge，是 L2R 实验数据公开的关键事件；ERR 评测指标在 L2R 圈使用范围仅次于 NDCG。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "Yahoo L2R Challenge Overview (2011)",
+          "why": "了解 L2R 评测的工业标准",
+          "difficulty": "★"
+        },
+        {
+          "order": 2,
+          "title": "ERR (CIKM 2009)",
+          "why": "graded relevance 下的 ranking metric",
+          "difficulty": "★★"
+        }
+      ],
+      "llm_blurb": "Chapelle 与 Tie-Yan Liu 在 Yahoo L2R Challenge (2011) 期间合作；TYLiu 团队提交 LETOR baseline 系统是 challenge 的早期参与方。",
+      "relation_to_center": "coauthor",
+      "homepage_url": "https://scholar.google.com/citations?user=t_K2WGUAAAAJ",
+      "scholar_url": "https://scholar.google.com/citations?user=t_K2WGUAAAAJ"
+    },
+    {
+      "id": "tao-qin",
+      "name": "Tao Qin",
+      "chinese_name": "秦涛",
+      "institution": "北京中关村学院",
+      "country": "CN",
+      "avatar_color": "amber",
+      "role_in_field": "structured learning to rank · query-level loss design",
+      "metrics": {
+        "h_index": 72,
+        "total_citations": 22000,
+        "recent_3y_citations": 3200,
+        "field_papers": 19,
+        "centrality": 0.68,
+        "consistency": 0.72
+      },
+      "field_papers": [
+        {
+          "title": "Query-level Loss Functions for IR (with TYLiu)",
+          "venue": "IP&M 2008",
+          "year": 2008,
+          "citations": 320
+        },
+        {
+          "title": "Global Ranking using Continuous Conditional Random Fields",
+          "venue": "NIPS 2008",
+          "year": 2008,
+          "citations": 280
+        },
+        {
+          "title": "LETOR Benchmark (with TYLiu)",
+          "venue": "SIGIR 2007 WS",
+          "year": 2007,
+          "citations": 1200
+        }
+      ],
+      "research_line": "与 Tie-Yan Liu 同门（张旭东 PhD），L2R 期间是 TYLiu 团队 listwise 与 query-level loss 工作的核心一作；2024 跟 TYLiu 一起到中关村学院。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "Query-level Loss (IP&M 2008)",
+          "why": "query-level vs sample-level loss 的分水岭论文",
+          "difficulty": "★★★"
+        },
+        {
+          "order": 2,
+          "title": "Global Ranking with CCRF (NIPS 2008)",
+          "why": "把 CRF 引入 ranking",
+          "difficulty": "★★★★"
+        }
+      ],
+      "llm_blurb": "与 Tie-Yan Liu 是张旭东门下同门 + 21 年合作搭档，L2R 期间共著 228 篇（其中 30+ 篇 L2R 一作）；2024 跟随 TYLiu 一起到中关村学院任副院长。",
+      "relation_to_center": "coauthor",
+      "homepage_url": "https://taoqin.github.io/",
+      "scholar_url": "https://scholar.google.com/citations?user=8VRy_2sAAAAJ"
+    },
+    {
+      "id": "stephen-robertson",
+      "name": "Stephen Robertson",
+      "chinese_name": "",
+      "institution": "ex-MSR Cambridge / UCL",
+      "country": "UK",
+      "avatar_color": "slate",
+      "role_in_field": "BM25 / Okapi 系列作者 · IR ranking 奠基人 (pre-L2R)",
+      "metrics": {
+        "h_index": 78,
+        "total_citations": 72000,
+        "recent_3y_citations": 4500,
+        "field_papers": 11,
+        "centrality": 0.65,
+        "consistency": 0.38
+      },
+      "field_papers": [
+        {
+          "title": "Some Simple Effective Approximations to the 2-Poisson Model (BM25)",
+          "venue": "SIGIR 1994",
+          "year": 1994,
+          "citations": 4500
+        },
+        {
+          "title": "The Probabilistic Relevance Framework: BM25 and Beyond",
+          "venue": "F&T IR 2009",
+          "year": 2009,
+          "citations": 2200
+        }
+      ],
+      "research_line": "BM25 是所有 L2R 系统的 baseline——没有 BM25 就没有衡量 L2R 改进的基准。L2R 中所有论文都会引用 BM25 作为对照组。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "BM25 original (SIGIR 1994)",
+          "why": "必读，理解 IR ranking 的概率框架",
+          "difficulty": "★★★"
+        },
+        {
+          "order": 2,
+          "title": "Probabilistic Relevance Framework (F&T 2009)",
+          "why": "BM25 的当代总结",
+          "difficulty": "★★★"
+        }
+      ],
+      "llm_blurb": "Robertson 的 BM25 是 L2R 必引的 baseline；Tie-Yan Liu 的 listwise 论文与 LETOR benchmark 都用 BM25 作为 pointwise 对照。",
+      "relation_to_center": "cite_only",
+      "homepage_url": "https://scholar.google.com/citations?user=ED7XPo4AAAAJ",
+      "scholar_url": "https://scholar.google.com/citations?user=ED7XPo4AAAAJ"
+    },
+    {
+      "id": "jun-xu",
+      "name": "Jun Xu",
+      "chinese_name": "徐君",
+      "institution": "中国人民大学",
+      "country": "CN",
+      "avatar_color": "emerald",
+      "role_in_field": "AdaRank · RankBoost · L2R boosting 流派",
+      "metrics": {
+        "h_index": 52,
+        "total_citations": 11500,
+        "recent_3y_citations": 1800,
+        "field_papers": 17,
+        "centrality": 0.55,
+        "consistency": 0.62
+      },
+      "field_papers": [
+        {
+          "title": "AdaRank: A Boosting Algorithm for Information Retrieval",
+          "venue": "SIGIR 2007",
+          "year": 2007,
+          "citations": 720
+        },
+        {
+          "title": "Directly Optimizing Evaluation Measures in L2R (with Hang Li)",
+          "venue": "SIGIR 2008",
+          "year": 2008,
+          "citations": 480
+        }
+      ],
+      "research_line": "MSRA → 人大；早期 L2R 阶段在 TYLiu/Hang Li 团队负责 boosting 流派工作，AdaRank 把 AdaBoost 思想移植到 ranking metric 上。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "AdaRank (SIGIR 2007)",
+          "why": "boosting + IR metric 直接优化",
+          "difficulty": "★★★"
+        }
+      ],
+      "llm_blurb": "与 Tie-Yan Liu 在 MSRA 2005-2010 期间合作；2010 后转人大。L2R 期间是 TYLiu 团队 boosting 流派的代表。",
+      "relation_to_center": "coauthor",
+      "homepage_url": "http://www.thuir.cn/group/~junxu/",
+      "scholar_url": "https://scholar.google.com/citations?user=lLg2DqsAAAAJ"
+    },
+    {
+      "id": "yanyan-lan",
+      "name": "Yanyan Lan",
+      "chinese_name": "兰艳艳",
+      "institution": "清华大学交叉信息研究院",
+      "country": "CN",
+      "avatar_color": "fuchsia",
+      "role_in_field": "listwise loss 理论分析 · 一致性证明",
+      "metrics": {
+        "h_index": 42,
+        "total_citations": 8200,
+        "recent_3y_citations": 2400,
+        "field_papers": 13,
+        "centrality": 0.48,
+        "consistency": 0.74
+      },
+      "field_papers": [
+        {
+          "title": "Statistical Consistency of Listwise L2R",
+          "venue": "ICML 2009",
+          "year": 2009,
+          "citations": 280
+        },
+        {
+          "title": "Position-Aware Listwise L2R",
+          "venue": "WSDM 2014",
+          "year": 2014,
+          "citations": 180
+        }
+      ],
+      "research_line": "中科院计算所 → 清华叉院；listwise approach 理论分析的核心贡献者，与 TYLiu 合作完成 listwise loss 的统计一致性证明。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "Statistical Consistency of Listwise (ICML 2009)",
+          "why": "listwise 为什么 work 的理论证明",
+          "difficulty": "★★★★"
+        }
+      ],
+      "llm_blurb": "与 Tie-Yan Liu 在 MSRA 实习期间合作完成 listwise 理论分析；现清华叉院 PI。",
+      "relation_to_center": "coauthor",
+      "homepage_url": "https://lanyanyan.thuir.cn/",
+      "scholar_url": "https://scholar.google.com/citations?user=RBE_LccAAAAJ"
+    },
+    {
+      "id": "bin-gao",
+      "name": "Bin Gao",
+      "chinese_name": "",
+      "institution": "Meta",
+      "country": "US",
+      "avatar_color": "sky",
+      "role_in_field": "L2R 分布式实现 · 早期合作者",
+      "metrics": {
+        "h_index": 38,
+        "total_citations": 15200,
+        "recent_3y_citations": 1100,
+        "field_papers": 12,
+        "centrality": 0.42,
+        "consistency": 0.32
+      },
+      "field_papers": [
+        {
+          "title": "Semi-Supervised Ranking on Very Large Graphs",
+          "venue": "KDD 2009",
+          "year": 2009,
+          "citations": 280
+        },
+        {
+          "title": "Web-scale Bayesian Click-through Rate Prediction",
+          "venue": "ICML 2010",
+          "year": 2010,
+          "citations": 220
+        }
+      ],
+      "research_line": "MSRA 2004-2014 → Meta；L2R + 大规模图排序，后转 Meta 做广告排序。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "Semi-Supervised Ranking on Graphs (KDD 2009)",
+          "why": "把图算法引入 L2R",
+          "difficulty": "★★★"
+        }
+      ],
+      "llm_blurb": "与 Tie-Yan Liu 在 MSRA 2004-2014 合作（40 篇共著），L2R 期间是分布式实现的主力。",
+      "relation_to_center": "coauthor",
+      "homepage_url": "https://scholar.google.com/citations?user=tCXcJ50AAAAJ",
+      "scholar_url": "https://scholar.google.com/citations?user=tCXcJ50AAAAJ"
+    },
+    {
+      "id": "bruce-croft",
+      "name": "W. Bruce Croft",
+      "chinese_name": "",
+      "institution": "UMass Amherst",
+      "country": "US",
+      "avatar_color": "stone",
+      "role_in_field": "Language Models for IR · IR ranking 学术派 (pre-L2R)",
+      "metrics": {
+        "h_index": 92,
+        "total_citations": 48000,
+        "recent_3y_citations": 2800,
+        "field_papers": 9,
+        "centrality": 0.52,
+        "consistency": 0.35
+      },
+      "field_papers": [
+        {
+          "title": "A Language Modeling Approach to Information Retrieval",
+          "venue": "SIGIR 1998",
+          "year": 1998,
+          "citations": 3200
+        },
+        {
+          "title": "Search Engines: Information Retrieval in Practice (book)",
+          "venue": "2009",
+          "year": 2009,
+          "citations": 1800
+        }
+      ],
+      "research_line": "L2R 之前的 IR 学派代表；他的 LM-IR 框架是 BM25 之外的另一条 ranking 路线，L2R 论文常引用。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "LM Approach to IR (SIGIR 1998)",
+          "why": "理解 L2R 之前的 ranking 框架",
+          "difficulty": "★★★"
+        }
+      ],
+      "llm_blurb": "Croft 是 LM-IR 学派代表；Tie-Yan Liu 的 L2R 教科书将 LM-IR 与 BM25 并列为 pre-L2R 的两大 baseline。",
+      "relation_to_center": "cite_only",
+      "homepage_url": "https://groups.cs.umass.edu/croft/",
+      "scholar_url": "https://scholar.google.com/citations?user=PT5tw68AAAAJ"
+    },
+    {
+      "id": "hongyuan-zha",
+      "name": "Hongyuan Zha",
+      "chinese_name": "查宏远",
+      "institution": "香港中文大学（深圳）",
+      "country": "CN",
+      "avatar_color": "violet",
+      "role_in_field": "Joint relevance learning · ranking SVM-Map 优化",
+      "metrics": {
+        "h_index": 76,
+        "total_citations": 28000,
+        "recent_3y_citations": 3100,
+        "field_papers": 11,
+        "centrality": 0.58,
+        "consistency": 0.45
+      },
+      "field_papers": [
+        {
+          "title": "A General Boosting Method and its Application to Learning Ranking Functions",
+          "venue": "NIPS 2007",
+          "year": 2007,
+          "citations": 380
+        },
+        {
+          "title": "A Regression Framework for Learning Ranking Functions",
+          "venue": "SIGIR 2007",
+          "year": 2007,
+          "citations": 350
+        }
+      ],
+      "research_line": "Penn State → GaTech → CUHK-SZ；ML 理论背景介入 L2R，提供更严格的 boosting + regression 框架。Jiang Bian 的博导。",
+      "recommended_reading": [
+        {
+          "order": 1,
+          "title": "GBRank / Regression Framework (SIGIR 2007)",
+          "why": "把 ranking 转化为 regression 的代表工作",
+          "difficulty": "★★★"
+        }
+      ],
+      "llm_blurb": "Zha 是 L2R 理论侧的代表；他与 TYLiu 没有直接合著，但通过 Jiang Bian（Zha 的学生，TYLiu 的 MSRA 长期合作者）形成间接桥接。",
+      "relation_to_center": "cite_only",
+      "homepage_url": "https://sds.cuhk.edu.cn/en/teacher/65",
+      "scholar_url": "https://scholar.google.com/citations?user=n1zDCkQAAAAJ"
+    }
+  ],
+  "edges": [
+    {
+      "source": "tie-yan-liu",
+      "target": "hang-li",
+      "type": "coauthor",
+      "weight": 35,
+      "evidence": "35 共著论文（含 listwise ICML 2007），2003-2012 MSRA 深度合作"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "tao-qin",
+      "type": "coauthor",
+      "weight": 228,
+      "evidence": "228 共著论文，同门 + 21 年副手 + 2024 同到中关村学院"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "jun-xu",
+      "type": "coauthor",
+      "weight": 12,
+      "evidence": "12 共著论文，MSRA 2005-2010 时期 AdaRank 等 boosting L2R 合作"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "bin-gao",
+      "type": "coauthor",
+      "weight": 40,
+      "evidence": "40 共著论文，MSRA 2004-2014 期间分布式 L2R 工作"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "yanyan-lan",
+      "type": "coauthor",
+      "weight": 10,
+      "evidence": "10 共著论文，listwise 理论分析合作"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "olivier-chapelle",
+      "type": "coauthor",
+      "weight": 3,
+      "evidence": "Yahoo L2R Challenge 2011 期间合作"
+    },
+    {
+      "source": "hang-li",
+      "target": "tao-qin",
+      "type": "coauthor",
+      "weight": 5,
+      "evidence": "5 共著论文，listwise 早期工作"
+    },
+    {
+      "source": "hang-li",
+      "target": "jun-xu",
+      "type": "coauthor",
+      "weight": 8,
+      "evidence": "8 共著论文，SVM-MAP 等工作"
+    },
+    {
+      "source": "tao-qin",
+      "target": "jun-xu",
+      "type": "coauthor",
+      "weight": 5,
+      "evidence": "5 共著论文"
+    },
+    {
+      "source": "tao-qin",
+      "target": "bin-gao",
+      "type": "coauthor",
+      "weight": 8,
+      "evidence": "8 共著论文"
+    },
+    {
+      "source": "tao-qin",
+      "target": "yanyan-lan",
+      "type": "coauthor",
+      "weight": 4,
+      "evidence": "4 共著论文"
+    },
+    {
+      "source": "christopher-burges",
+      "target": "olivier-chapelle",
+      "type": "coauthor",
+      "weight": 2,
+      "evidence": "2 共著论文，Yahoo Challenge 期间"
+    },
+    {
+      "source": "hongyuan-zha",
+      "target": "olivier-chapelle",
+      "type": "coauthor",
+      "weight": 3,
+      "evidence": "3 共著，joint relevance 工作"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "christopher-burges",
+      "type": "citation",
+      "weight": 52,
+      "evidence": "TYLiu 多篇论文引用 RankNet/LambdaMART 作为 baseline 或对比项"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "thorsten-joachims",
+      "type": "citation",
+      "weight": 38,
+      "evidence": "TYLiu listwise 论文明确把 SVM-Rank 作为 pairwise 流派代表对比"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "stephen-robertson",
+      "type": "citation",
+      "weight": 82,
+      "evidence": "BM25 是 TYLiu L2R 教科书与所有 LETOR 实验的 baseline"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "bruce-croft",
+      "type": "citation",
+      "weight": 28,
+      "evidence": "L2R 教科书引用 LM-IR 作为 pre-L2R 框架对照"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "olivier-chapelle",
+      "type": "citation",
+      "weight": 22,
+      "evidence": "引用 ERR / Yahoo Challenge"
+    },
+    {
+      "source": "hang-li",
+      "target": "christopher-burges",
+      "type": "citation",
+      "weight": 25,
+      "evidence": "L2R for IR/NLP book 大量引用 RankNet 进化链"
+    },
+    {
+      "source": "hang-li",
+      "target": "stephen-robertson",
+      "type": "citation",
+      "weight": 30,
+      "evidence": "BM25 baseline 引用"
+    },
+    {
+      "source": "thorsten-joachims",
+      "target": "christopher-burges",
+      "type": "citation",
+      "weight": 20,
+      "evidence": "counterfactual L2R 论文引用 RankNet/LambdaMART 作为对比"
+    },
+    {
+      "source": "olivier-chapelle",
+      "target": "thorsten-joachims",
+      "type": "citation",
+      "weight": 15,
+      "evidence": "Click model 与 SVM-Rank 关联"
+    },
+    {
+      "source": "yanyan-lan",
+      "target": "christopher-burges",
+      "type": "citation",
+      "weight": 12,
+      "evidence": "listwise 一致性证明引用 RankNet 作为 pairwise 对照"
+    },
+    {
+      "source": "yanyan-lan",
+      "target": "thorsten-joachims",
+      "type": "citation",
+      "weight": 10,
+      "evidence": "理论分析引用 SVM-Rank"
+    },
+    {
+      "source": "bruce-croft",
+      "target": "stephen-robertson",
+      "type": "citation",
+      "weight": 35,
+      "evidence": "LM-IR 与 BM25 互为基础对照工作"
+    },
+    {
+      "source": "jun-xu",
+      "target": "christopher-burges",
+      "type": "citation",
+      "weight": 18,
+      "evidence": "AdaRank 把 RankNet 作为 baseline"
+    },
+    {
+      "source": "hongyuan-zha",
+      "target": "thorsten-joachims",
+      "type": "citation",
+      "weight": 14,
+      "evidence": "Regression framework 引用 SVM-Rank"
+    },
+    {
+      "source": "bin-gao",
+      "target": "thorsten-joachims",
+      "type": "citation",
+      "weight": 12,
+      "evidence": "graph-based ranking 引用 SVM-Rank"
+    }
+  ],
+  "mentors": [
+    {
+      "id": "xudong-zhang-thu",
+      "name": "Xudong Zhang",
+      "chinese_name": "张旭东",
+      "institution": "清华 EE 教授",
+      "role_to_center": "PhD advisor",
+      "year_range": "1999-2003",
+      "evidence": "Tie-Yan Liu 博士导师，清华 EE 1999-2003；DBLP 共著 18+ 篇 (2002-2008)。张旭东也是 Tao Qin 的博导。",
+      "avatar_color": "rose",
+      "homepage_url": "https://web.ee.tsinghua.edu.cn/zhangxudong/zh_CN/index.htm"
+    },
+    {
+      "id": "rakesh-agrawal",
+      "name": "Rakesh Agrawal",
+      "chinese_name": "",
+      "institution": "ex-MSR Silicon Valley (retired)",
+      "role_to_center": "Methodology mentor",
+      "year_range": "2003-2009 (MSRA)",
+      "evidence": "刘铁岩在多次公开访谈中点名 Rakesh Agrawal 的方法论：'针对一个重要的问题，从表面到核心全部做到位'，而非'为了发表论文而发论文'。",
+      "avatar_color": "rose",
+      "homepage_url": "https://rakesh.agrawal-family.com/"
+    },
+    {
+      "id": "yiming-yang-cmu",
+      "name": "Yiming Yang",
+      "chinese_name": "杨颐明",
+      "institution": "CMU LTI",
+      "role_to_center": "Early collaboration mentor",
+      "year_range": "2004",
+      "evidence": "2004 年合作搭建当时世界上最大、近 30 万类的文本分类系统——刘铁岩自述这是他从多媒体转 IR 的敲门砖。",
+      "avatar_color": "rose",
+      "homepage_url": "https://www.cs.cmu.edu/~yiming/"
+    }
+  ],
+  "papers": [
+    {
+      "id": "paper-listwise-icml-2007",
+      "title": "Learning to Rank: Pairwise → Listwise",
+      "short_title": "Listwise (ICML 2007)",
+      "venue": "ICML 2007",
+      "year": 2007,
+      "citations": 3048,
+      "authors": [
+        "tie-yan-liu",
+        "hang-li",
+        "tao-qin"
+      ],
+      "note": "L2R 三大流派的最后一块拼图",
+      "url": "https://dl.acm.org/doi/10.1145/1273496.1273513"
+    },
+    {
+      "id": "paper-letor-2007",
+      "title": "LETOR: Benchmark Dataset for Research on Learning to Rank",
+      "short_title": "LETOR (SIGIR 2007 WS)",
+      "venue": "SIGIR 2007 WS",
+      "year": 2007,
+      "citations": 1200,
+      "authors": [
+        "tie-yan-liu",
+        "tao-qin",
+        "jun-xu"
+      ],
+      "note": "L2R 标准数据集",
+      "url": "https://www.microsoft.com/en-us/research/project/letor-learning-rank-information-retrieval/"
+    },
+    {
+      "id": "paper-textbook-2009",
+      "title": "Learning to Rank for Information Retrieval (textbook)",
+      "short_title": "L2R Textbook (F&T 2009)",
+      "venue": "F&T 2009",
+      "year": 2009,
+      "citations": 4664,
+      "authors": [
+        "tie-yan-liu"
+      ],
+      "note": "教科书 · 200 页",
+      "url": "https://www.nowpublishers.com/article/Details/INR-016"
+    },
+    {
+      "id": "paper-query-loss-2008",
+      "title": "Query-level Loss Functions for Information Retrieval",
+      "short_title": "Query-level Loss (IP&M 2008)",
+      "venue": "IP&M 2008",
+      "year": 2008,
+      "citations": 320,
+      "authors": [
+        "tie-yan-liu",
+        "tao-qin"
+      ],
+      "note": "loss design 分水岭",
+      "url": "https://www.sciencedirect.com/science/article/abs/pii/S0306457307001495"
+    },
+    {
+      "id": "paper-generalization-2009",
+      "title": "Generalization Analysis of Listwise Learning-to-Rank",
+      "short_title": "Listwise Theory (ICML 2009)",
+      "venue": "ICML 2009",
+      "year": 2009,
+      "citations": 280,
+      "authors": [
+        "tie-yan-liu",
+        "yanyan-lan"
+      ],
+      "note": "listwise 一致性证明",
+      "url": "https://dl.acm.org/doi/10.1145/1553374.1553420"
+    }
+  ],
+  "mentorship_edges": [
+    {
+      "source": "xudong-zhang-thu",
+      "target": "tie-yan-liu",
+      "type": "mentorship",
+      "subtype": "phd_advisor",
+      "evidence": "PhD advisor at Tsinghua EE 1999-2003"
+    },
+    {
+      "source": "rakesh-agrawal",
+      "target": "tie-yan-liu",
+      "type": "mentorship",
+      "subtype": "methodology_mentor",
+      "evidence": "MSRA 时期方法论 mentor"
+    },
+    {
+      "source": "yiming-yang-cmu",
+      "target": "tie-yan-liu",
+      "type": "mentorship",
+      "subtype": "early_collab_mentor",
+      "evidence": "2004 联合搭建文本分类系统"
+    },
+    {
+      "source": "xudong-zhang-thu",
+      "target": "tao-qin",
+      "type": "mentorship",
+      "subtype": "phd_advisor",
+      "evidence": "PhD advisor at Tsinghua EE 2003-2008 (同门 sibling)"
+    }
+  ],
+  "paper_edges": [
+    {
+      "source": "tie-yan-liu",
+      "target": "paper-listwise-icml-2007",
+      "type": "authored",
+      "evidence": "Listwise (ICML 2007) · 3048 ★"
+    },
+    {
+      "source": "hang-li",
+      "target": "paper-listwise-icml-2007",
+      "type": "authored",
+      "evidence": "Listwise (ICML 2007) · 3048 ★"
+    },
+    {
+      "source": "tao-qin",
+      "target": "paper-listwise-icml-2007",
+      "type": "authored",
+      "evidence": "Listwise (ICML 2007) · 3048 ★"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "paper-letor-2007",
+      "type": "authored",
+      "evidence": "LETOR (SIGIR 2007 WS) · 1200 ★"
+    },
+    {
+      "source": "tao-qin",
+      "target": "paper-letor-2007",
+      "type": "authored",
+      "evidence": "LETOR (SIGIR 2007 WS) · 1200 ★"
+    },
+    {
+      "source": "jun-xu",
+      "target": "paper-letor-2007",
+      "type": "authored",
+      "evidence": "LETOR (SIGIR 2007 WS) · 1200 ★"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "paper-textbook-2009",
+      "type": "authored",
+      "evidence": "L2R Textbook (F&T 2009) · 4664 ★"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "paper-query-loss-2008",
+      "type": "authored",
+      "evidence": "Query-level Loss (IP&M 2008) · 320 ★"
+    },
+    {
+      "source": "tao-qin",
+      "target": "paper-query-loss-2008",
+      "type": "authored",
+      "evidence": "Query-level Loss (IP&M 2008) · 320 ★"
+    },
+    {
+      "source": "tie-yan-liu",
+      "target": "paper-generalization-2009",
+      "type": "authored",
+      "evidence": "Listwise Theory (ICML 2009) · 280 ★"
+    },
+    {
+      "source": "yanyan-lan",
+      "target": "paper-generalization-2009",
+      "type": "authored",
+      "evidence": "Listwise Theory (ICML 2009) · 280 ★"
+    }
+  ]
+}
