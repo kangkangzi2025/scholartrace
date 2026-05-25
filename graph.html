@@ -387,8 +387,8 @@ function renderGraph(){
     visNodes.push({
       id, label: (s.chinese_name || s.name) + (judged && !isCenter ? "  ✨" : ""),
       title: `${s.name}${s.chinese_name ? " (" + s.chinese_name + ")" : ""}\n${s.institution}${s.metrics ? "\nh=" + s.metrics.h_index + " · " + (s.metrics.total_citations/1000).toFixed(0) + "k cit" : ""}`,
-      shape: "circle", size: isCenter ? 38 : SCHOLAR_SIZE,
-      font: { color: style.font, size: isCenter ? 17 : 13, face: "Inter, PingFang SC", strokeWidth: 0, bold: isCenter },
+      shape: "circle", size: SCHOLAR_SIZE,
+      font: { color: style.font, size: 13, face: "Inter, PingFang SC", strokeWidth: 0, bold: isCenter },
       color: { background: style.bg, border: style.border, highlight: { background: style.bg, border: "#c2410c" } },
       borderWidth: style.borderWidth,
       margin: { top: 10, right: 14, bottom: 10, left: 14 },
