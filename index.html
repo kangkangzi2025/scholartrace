@@ -113,6 +113,7 @@
   .modal{max-width:440px;width:100%;background:#fffdfb;border:1px solid var(--border);border-radius:20px;padding:26px;box-shadow:var(--shadow-lg);animation:modalIn .35s cubic-bezier(.16,1,.3,1) both;}
   @keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.97);}to{opacity:1;transform:none;}}
   .modal .stage{font-size:10px;color:var(--blue-hover);font-weight:700;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:6px;background:none;border:none;padding:0;}
+  .modal .stage.warn{color:#b08200;}
   .modal .uin{color:var(--gray);font-size:13px;margin-bottom:14px;}
   .modal .uin .q{font-family:'JetBrains Mono',monospace;color:var(--blue-hover);background:rgba(217,119,87,.10);padding:1px 6px;border-radius:4px;}
   .modal .prompt{color:var(--ink);font-size:14px;margin-bottom:14px;}
@@ -121,6 +122,17 @@
   .aligned-box .cn{font-size:14px;color:var(--gray);margin-top:3px;}
   .aligned-box .path{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray-soft);margin-top:10px;line-height:1.5;}
   .aligned-box .d{font-size:12.5px;color:var(--gray);margin-top:8px;line-height:1.55;}
+  .not-yet-box{background:rgba(176,130,0,.06);border:1px solid rgba(176,130,0,.25);border-radius:14px;padding:18px;margin-bottom:18px;}
+  .not-yet-box h3{font-size:17px;font-weight:700;color:#b08200;margin-bottom:6px;}
+  .not-yet-box p{font-size:13px;color:var(--gray);line-height:1.6;}
+  .not-yet-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+  .not-yet-list .item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--ink);background:rgba(255,253,251,.7);transition:all .15s;cursor:pointer;}
+  .not-yet-list .item:hover{border-color:rgba(217,119,87,.5);background:rgba(255,253,251,.95);transform:translateX(2px);}
+  .not-yet-list .item .n{font-size:13.5px;font-weight:600;}
+  .not-yet-list .item .c{font-size:11px;color:var(--gray);}
+  .not-yet-list .item .ar{color:var(--blue-hover);font-size:14px;}
+  .not-yet-list .disabled{opacity:.5;cursor:not-allowed;background:rgba(120,72,40,.04);}
+  .not-yet-list .disabled:hover{transform:none;border-color:var(--border);background:rgba(120,72,40,.04);}
   .modal-btns{display:flex;gap:10px;}
   .btn{flex:1;padding:11px 0;border:0;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .14s;font-family:inherit;}
   .btn-ghost{background:#f7eee5;color:var(--gray);}
@@ -242,6 +254,35 @@
     </div>
   </div>
 
+  <!-- 未收录领域 Modal -->
+  <div class="modal-backdrop" id="not-yet">
+    <div class="modal">
+      <p class="stage warn">[v1.1] DOMAIN NOT YET INDEXED</p>
+      <p class="uin">你输入了 <span class="q" id="not-yet-input"></span></p>
+      <div class="not-yet-box">
+        <h3>⏳ 该领域尚未收录</h3>
+        <p>MVP v1.0 聚焦计算机科学 · AI 领域。其它领域将在 v1.1 拓展至生物医学、物理、化学。当前你可以试试已收录的领域：</p>
+      </div>
+      <div class="not-yet-list">
+        <a class="item" href="list.html?id=learning-to-rank">
+          <span><span class="n">Learning to Rank</span> · <span class="c">学习排序 · 12 学者</span></span>
+          <span class="ar">→</span>
+        </a>
+        <div class="item disabled">
+          <span><span class="n" style="color:var(--gray-soft)">Diffusion Models</span> · <span class="c">v1.1</span></span>
+          <span class="c">即将上线</span>
+        </div>
+        <div class="item disabled">
+          <span><span class="n" style="color:var(--gray-soft)">RLHF</span> · <span class="c">v1.1</span></span>
+          <span class="c">即将上线</span>
+        </div>
+      </div>
+      <div class="modal-btns">
+        <button class="btn btn-ghost" id="not-yet-close">换一个搜索词</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Agent Terminal Overlay -->
   <div class="overlay" id="overlay">
     <div class="terminal-wrap">
@@ -306,21 +347,34 @@ function search(){
     box.animate([{transform:"translateX(0)"},{transform:"translateX(-5px)"},{transform:"translateX(5px)"},{transform:"translateX(0)"}],{duration:240}); return; }
   if(mode === "person"){ showHint("人名模式将在 v1.1 上线，请切回领域模式", true); return; }
   const d = resolveDomain(v);
-  const fallback = !d;
-  const dom = d || DOMAINS["learning-to-rank"];
-  showAlignModal(v, dom, fallback);
+  if(!d){
+    showNotYet(v);
+    return;
+  }
+  showAlignModal(v, d);
 }
 
-function showAlignModal(rawInput, domain, isFallback){
+function showAlignModal(rawInput, domain){
   document.getElementById("user-input").textContent = `"${rawInput}"`;
   document.getElementById("aligned-name").textContent = domain.name;
   document.getElementById("aligned-cn").textContent = domain.chinese;
   document.getElementById("aligned-path").textContent = domain.concept_path;
-  document.getElementById("aligned-desc").textContent = isFallback ? "（演示模式：未匹配 · 兜底跳转）" + domain.desc : domain.desc;
+  document.getElementById("aligned-desc").textContent = domain.desc;
   document.getElementById("modal").classList.add("show");
   document.getElementById("modal-confirm").onclick = () => runDomainSearch(domain, rawInput);
   document.getElementById("modal-cancel").onclick = () => { document.getElementById("modal").classList.remove("show"); input.focus(); };
 }
+
+function showNotYet(rawInput){
+  document.getElementById("not-yet-input").textContent = `"${rawInput}"`;
+  document.getElementById("not-yet").classList.add("show");
+}
+document.getElementById("not-yet-close").addEventListener("click", () => {
+  document.getElementById("not-yet").classList.remove("show");
+  input.value = "";
+  box.classList.remove("has-text");
+  input.focus();
+});
 
 const PHASES = [
   { line: "&gt; ScholarTrace agent v0.1 started", delay: 100 },
