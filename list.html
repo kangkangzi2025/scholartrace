@@ -1,155 +1,187 @@
-<!doctype html>
-<html lang="zh-Hans">
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ScholarTrace · Ranking</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  html, body { background: #0a0e1a; color: #e2e8f0; }
-  body { font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-  .font-serif-zh { font-family: "Noto Serif SC", serif; }
-  .font-mono { font-family: "JetBrains Mono", monospace; }
-  ::selection { background: #f59e0b; color: #0a0e1a; }
+  :root{
+    --blue:#d97757;
+    --blue-hover:#c2410c;
+    --ink:#2b2118;
+    --gray:#6b5d52;
+    --gray-soft:#9a8b7e;
+    --border:#ece2d8;
+    --bg:#faf6f2;
+    --link:#b8551e;
+    --c-self:#e8804a;
+    --c-advisor:#f0a060;
+    --c-collab:#f5bd87;
+    --c-paper:#f8d9b8;
+    --shadow-sm:0 1px 2px rgba(120,72,40,.07),0 1px 3px rgba(120,72,40,.10);
+    --shadow-md:0 4px 12px rgba(120,72,40,.09),0 2px 4px rgba(120,72,40,.06);
+    --shadow-lg:0 12px 32px rgba(120,72,40,.14),0 4px 8px rgba(120,72,40,.07);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{min-height:100%;}
+  body{font-family:'Inter','PingFang SC','Microsoft YaHei',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
+  body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(680px 480px at 18% -8%,rgba(217,119,87,.16),transparent 60%),radial-gradient(560px 420px at 92% 6%,rgba(240,168,104,.12),transparent 60%),var(--bg);}
+  ::selection{background:rgba(217,119,87,.25);color:var(--ink);}
+  a{color:inherit;text-decoration:none;}
 
-  input[type=range] {
-    -webkit-appearance: none; appearance: none;
-    width: 100%; height: 6px; background: #1e293b; border-radius: 4px; outline: none;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 16px; height: 16px; border-radius: 50%;
-    background: #f59e0b; cursor: pointer; box-shadow: 0 0 8px rgba(245,158,11,0.5);
-  }
-  input[type=range]::-moz-range-thumb {
-    width: 16px; height: 16px; border-radius: 50%;
-    background: #f59e0b; cursor: pointer; box-shadow: 0 0 8px rgba(245,158,11,0.5); border: 0;
-  }
-  .ai-glow { box-shadow: 0 0 0 1px rgba(245,158,11,0.6), 0 0 24px rgba(245,158,11,0.15); transition: all 0.4s; }
-  .rank-card { transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
-  .rank-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,158,11,0.08); }
-  .ai-badge { animation: pop 0.5s cubic-bezier(0.16, 1, 0.3, 1), glow-pulse 2.2s ease-in-out infinite 0.6s; }
-  @keyframes pop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-  @keyframes glow-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
-    50% { box-shadow: 0 0 12px 2px rgba(245,158,11,0.35); }
-  }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(14px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .card-enter { opacity: 0; animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  .progress-bar { background: linear-gradient(90deg, #f59e0b, #fb923c); transition: width 0.4s; position: relative; overflow: hidden; }
-  .progress-bar::after {
-    content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    animation: shimmer 1.5s infinite;
-  }
-  @keyframes shimmer { 100% { left: 100%; } }
-  .metric-num { display: inline-block; min-width: 1ch; }
+  header{position:sticky;top:0;background:rgba(250,246,242,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;z-index:40;}
+  header .brand{display:flex;align-items:center;gap:11px;}
+  header .brand .cap{flex:0 0 auto;}
+  header .brand .word{display:flex;align-items:baseline;gap:8px;}
+  header .brand b{font-weight:700;font-size:16px;letter-spacing:-.3px;color:var(--ink);}
+  header .brand .zh{font-size:14px;color:var(--gray);}
+  header .brand .back{font-size:11px;color:var(--gray-soft);margin-top:1px;display:block;}
+  header .status{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--gray);font-family:'JetBrains Mono',monospace;}
+  header .status .dot{width:8px;height:8px;border-radius:50%;background:var(--blue);animation:pulse 1.6s ease-in-out infinite;}
+  header .status .dot.done{background:#0e9f6e;animation:none;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  header .progress{width:140px;height:4px;border-radius:2px;background:rgba(120,72,40,.12);overflow:hidden;position:relative;}
+  header .progress .bar{height:100%;background:linear-gradient(90deg,#d97757,#c2410c);transition:width .5s;position:relative;}
+  header .progress .bar::after{content:"";position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);animation:shimmer 1.6s infinite;}
+  @keyframes shimmer{100%{left:200%;}}
+
+  main{max-width:1200px;margin:0 auto;padding:32px 24px 60px;}
+  .title-area{margin-bottom:28px;}
+  .title-area .path{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue-hover);letter-spacing:1px;margin-bottom:6px;}
+  .title-area h1{font-size:30px;font-weight:700;letter-spacing:-.8px;color:var(--ink);line-height:1.2;}
+  .title-area p{font-size:14px;color:var(--gray);margin-top:4px;line-height:1.6;}
+
+  .layout{display:grid;grid-template-columns:280px 1fr;gap:24px;}
+  @media(max-width:760px){.layout{grid-template-columns:1fr;}}
+
+  /* === 左 sidebar: 权重滑块 === */
+  aside{position:sticky;top:84px;align-self:start;}
+  .panel{background:rgba(255,253,251,.78);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);}
+  .panel-title{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gray-soft);margin-bottom:16px;}
+  .weight-row{margin-bottom:18px;}
+  .weight-row .label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;font-size:13px;}
+  .weight-row .label .k{color:var(--ink);font-weight:550;}
+  .weight-row .label .v{color:var(--blue-hover);font-family:'JetBrains Mono',monospace;font-weight:600;}
+  .weight-row .sub{font-size:10.5px;color:var(--gray-soft);margin-top:6px;font-family:'JetBrains Mono',monospace;}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;background:rgba(120,72,40,.13);border-radius:3px;outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#d97757,#c2410c);cursor:pointer;box-shadow:0 2px 6px rgba(194,65,12,.4);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#d97757,#c2410c);cursor:pointer;border:0;box-shadow:0 2px 6px rgba(194,65,12,.4);}
+  .formula{border-top:1px solid var(--border);padding-top:14px;margin-top:8px;}
+  .formula .lbl{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--gray-soft);}
+  .formula .eq{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--gray);margin-top:4px;line-height:1.65;}
+  .k-select{margin-top:16px;}
+  .k-select .lbl{font-size:11.5px;color:var(--gray);margin-bottom:8px;}
+  .k-btn{padding:5px 12px;border:1px solid var(--border);background:rgba(255,253,251,.6);color:var(--gray);font-size:12px;border-radius:8px;cursor:pointer;margin-right:6px;transition:all .15s;font-family:inherit;}
+  .k-btn.active{background:linear-gradient(135deg,#d97757,#c2410c);color:#fff;border-color:transparent;font-weight:600;}
+  .k-btn:not(.active):hover{border-color:rgba(217,119,87,.5);color:var(--ink);}
+  .reset{width:100%;margin-top:14px;padding:9px 0;background:rgba(120,72,40,.06);border:1px solid var(--border);color:var(--gray);font-size:12px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .15s;}
+  .reset:hover{background:rgba(120,72,40,.10);color:var(--ink);}
+
+  /* === 右: 学者列表 === */
+  .ranked-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;}
+  .ranked-head h3{font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gray-soft);}
+  .ranked-head .meta{font-size:11px;color:var(--gray-soft);font-family:'JetBrains Mono',monospace;}
+  .rank-list{display:flex;flex-direction:column;gap:10px;}
+  .rank-card{background:rgba(255,253,251,.85);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;gap:16px;align-items:flex-start;transition:transform .2s,box-shadow .2s,border-color .2s;cursor:pointer;text-decoration:none;color:inherit;}
+  .rank-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:rgba(217,119,87,.45);}
+  .rank-card.ai-judged{border-color:rgba(217,119,87,.4);box-shadow:0 0 0 1px rgba(217,119,87,.2),0 6px 18px rgba(217,119,87,.10);}
+  .rank-card .rank-no{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .rank-card .rank-no .num{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gray-soft);font-weight:600;}
+  .rank-card .avatar{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff;}
+  .rank-card .body{flex:1;min-width:0;}
+  .rank-card .name-row{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;flex-wrap:wrap;}
+  .rank-card h4{font-size:16px;font-weight:650;color:var(--ink);letter-spacing:-.2px;}
+  .rank-card .en{font-size:12.5px;color:var(--gray);}
+  .rank-card .badge{font-size:10px;padding:2px 7px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-weight:600;}
+  .rank-card .badge.unverified{background:rgba(176,130,0,.13);color:#b08200;border:1px solid rgba(176,130,0,.30);}
+  .rank-card .badge.ai{background:rgba(217,119,87,.13);color:var(--blue-hover);border:1px solid rgba(217,119,87,.30);display:inline-flex;align-items:center;gap:4px;animation:pop .5s cubic-bezier(.16,1,.3,1),glow .25s ease-in-out infinite alternate;}
+  @keyframes pop{0%{transform:scale(0);opacity:0;}100%{transform:scale(1);opacity:1;}}
+  @keyframes glow{from{box-shadow:0 0 0 0 rgba(217,119,87,0);}to{box-shadow:0 0 8px 1px rgba(217,119,87,.25);}}
+  .rank-card .inst{font-size:11.5px;color:var(--gray);margin-bottom:4px;}
+  .rank-card .role{font-size:12.5px;color:var(--ink);line-height:1.5;margin-bottom:10px;}
+  .rank-card .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .rank-card .m{display:flex;flex-direction:column;gap:3px;}
+  .rank-card .m .row{display:flex;justify-content:space-between;font-size:11px;}
+  .rank-card .m .row .k{color:var(--gray-soft);}
+  .rank-card .m .row .v{color:var(--blue-hover);font-family:'JetBrains Mono',monospace;font-weight:600;}
+  .rank-card .m .bar{height:3px;border-radius:2px;background:rgba(120,72,40,.10);overflow:hidden;}
+  .rank-card .m .bar > div{height:100%;background:linear-gradient(90deg,#d97757,#c2410c);transition:width .5s;}
+  .rank-card .field-cnt{flex:0 0 auto;text-align:right;}
+  .rank-card .field-cnt .lbl{font-size:10px;color:var(--gray-soft);text-transform:uppercase;letter-spacing:.5px;}
+  .rank-card .field-cnt .v{font-size:22px;font-weight:700;color:var(--ink);}
+  .rank-card .field-cnt .score{font-size:10px;color:var(--gray-soft);font-family:'JetBrains Mono',monospace;margin-top:4px;}
+
+  @keyframes slideIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  .card-enter{opacity:0;animation:slideIn .5s cubic-bezier(.16,1,.3,1) forwards;}
+
+  footer{font-size:12px;color:var(--gray-soft);padding:20px 28px 30px;text-align:center;}
 </style>
 </head>
-<body class="min-h-screen">
+<body>
 
-<header class="px-8 py-5 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-950/80 backdrop-blur z-40">
-  <a href="index.html" class="flex items-center gap-3 hover:opacity-80">
-    <div class="w-8 h-8 rounded-md bg-amber-500 flex items-center justify-center font-bold text-slate-900">ST</div>
-    <div>
-      <p class="font-semibold tracking-wide">ScholarTrace</p>
-      <p class="text-[10px] text-slate-400 -mt-0.5">← 返回首页</p>
-    </div>
+<header>
+  <a class="brand" href="index.html">
+    <svg class="cap" width="32" height="32" viewBox="0 0 50 50"><defs><linearGradient id="capG2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8804a"/><stop offset="1" stop-color="#c2410c"/></linearGradient></defs><circle cx="25" cy="25" r="25" fill="url(#capG2)"/><path d="M25 13 L41 20.5 L25 28 L9 20.5 Z" fill="#fff"/><path d="M15 23.5 L15 31 C15 33.7 19.5 35.4 25 35.4 C30.5 35.4 35 33.7 35 31 L35 23.5 L25 28 Z" fill="#fff" opacity=".9"/></svg>
+    <div class="word"><b>ScholarTrace</b><span class="zh">学脉</span></div>
   </a>
-  <div class="flex items-center gap-3 text-xs">
-    <div class="flex items-center gap-2 text-slate-500 font-mono">
-      <span id="ssestatus-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-      <span id="ssestatus">骨架渲染中</span>
-    </div>
-    <div class="w-32 h-1 rounded-full bg-slate-800 overflow-hidden">
-      <div id="progress" class="h-full progress-bar" style="width: 30%"></div>
-    </div>
+  <div class="status">
+    <span id="status-dot" class="dot"></span>
+    <span id="status-text">骨架渲染中</span>
+    <div class="progress"><div class="bar" id="progress" style="width:30%"></div></div>
   </div>
 </header>
 
-<main class="max-w-7xl mx-auto px-6 py-8">
+<main>
+  <div class="title-area">
+    <p class="path" id="concept-path"></p>
+    <h1 id="field-name"></h1>
+    <p id="field-desc"></p>
+  </div>
 
-  <!-- Field title -->
-  <section class="mb-6">
-    <p class="text-xs font-mono text-amber-400 mb-1" id="concept-path"></p>
-    <h1 class="font-serif-zh text-4xl font-bold" id="field-name"></h1>
-    <p class="text-slate-400 mt-1" id="field-desc"></p>
-  </section>
-
-  <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
-
-    <!-- 左：滑块面板 -->
-    <aside class="space-y-5">
-      <div class="rounded-xl bg-slate-900/60 border border-slate-800 p-5 sticky top-24">
-        <p class="text-xs uppercase tracking-widest text-slate-500 mb-4">影响力权重 · Hard Rules</p>
-
-        <div class="mb-5">
-          <div class="flex justify-between mb-2 text-sm">
-            <span class="text-slate-300">学术沉淀</span>
-            <span class="text-amber-400 font-mono" id="w1-val">40%</span>
-          </div>
+  <div class="layout">
+    <aside>
+      <div class="panel">
+        <p class="panel-title">影响力权重</p>
+        <div class="weight-row">
+          <div class="label"><span class="k">学术沉淀</span><span class="v" id="w1-val">40%</span></div>
           <input id="w1" type="range" min="0" max="100" value="40">
-          <p class="text-[10px] text-slate-500 mt-1.5">h-index</p>
+          <p class="sub">h-index</p>
         </div>
-
-        <div class="mb-5">
-          <div class="flex justify-between mb-2 text-sm">
-            <span class="text-slate-300">学术影响力</span>
-            <span class="text-amber-400 font-mono" id="w2-val">30%</span>
-          </div>
+        <div class="weight-row">
+          <div class="label"><span class="k">学术影响力</span><span class="v" id="w2-val">30%</span></div>
           <input id="w2" type="range" min="0" max="100" value="30">
-          <p class="text-[10px] text-slate-500 mt-1.5">log(total citations)</p>
+          <p class="sub">log(total citations)</p>
         </div>
-
-        <div class="mb-5">
-          <div class="flex justify-between mb-2 text-sm">
-            <span class="text-slate-300">近期活跃度</span>
-            <span class="text-amber-400 font-mono" id="w3-val">30%</span>
-          </div>
+        <div class="weight-row">
+          <div class="label"><span class="k">近期活跃度</span><span class="v" id="w3-val">30%</span></div>
           <input id="w3" type="range" min="0" max="100" value="30">
-          <p class="text-[10px] text-slate-500 mt-1.5">recent 3y citations</p>
+          <p class="sub">recent 3y citations</p>
         </div>
-
-        <div class="border-t border-slate-800 pt-4 text-xs">
-          <p class="text-slate-500 font-mono">公式：</p>
-          <p class="text-slate-400 mt-1 leading-relaxed">Score = w₁·H<br>　　 + w₂·log(Cit)<br>　　 + w₃·RecentCit</p>
-          <p class="text-[10px] text-slate-600 mt-3" id="weight-sum"></p>
+        <div class="formula">
+          <p class="lbl">// 公式</p>
+          <p class="eq">Score = w₁·H<br>　　 + w₂·log(Cit)<br>　　 + w₃·RecentCit</p>
         </div>
-
-        <div class="border-t border-slate-800 pt-4 mt-4">
-          <p class="text-xs text-slate-500 mb-2">显示 Top K</p>
-          <div class="flex gap-2">
-            <button class="k-btn px-3 py-1 rounded bg-amber-500 text-slate-900 text-sm font-medium" data-k="10">10</button>
-            <button class="k-btn px-3 py-1 rounded bg-slate-800 text-slate-300 text-sm hover:bg-slate-700" data-k="20">20</button>
-            <button class="k-btn px-3 py-1 rounded bg-slate-800 text-slate-300 text-sm hover:bg-slate-700" data-k="50">50</button>
-          </div>
+        <div class="k-select">
+          <p class="lbl">显示 Top K</p>
+          <button class="k-btn active" data-k="10">10</button>
+          <button class="k-btn" data-k="20">20</button>
+          <button class="k-btn" data-k="50">50</button>
         </div>
-
-        <button id="reset" class="w-full mt-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-400">重置为默认权重</button>
+        <button class="reset" id="reset">重置为默认权重</button>
       </div>
     </aside>
 
-    <!-- 右：学者列表 -->
     <section>
-      <div class="flex items-baseline justify-between mb-4">
-        <h2 class="text-sm uppercase tracking-widest text-slate-500">Ranked Scholars</h2>
-        <p class="text-xs text-slate-500" id="meta-info"></p>
+      <div class="ranked-head">
+        <h3>Ranked Scholars</h3>
+        <span class="meta" id="meta-info"></span>
       </div>
-      <div id="list" class="space-y-3"></div>
+      <div class="rank-list" id="list"></div>
     </section>
-
   </div>
-
-  <footer class="mt-16 mb-12 text-center text-xs text-slate-600">
-    数据来源 mock · 真实版本由 OpenAlex / Semantic Scholar 实时支持
-  </footer>
 </main>
+
+<footer>数据来源：Semantic Scholar API · 真实版本由 OpenAlex + LLM 实时支持</footer>
 
 <script>
 const params = new URLSearchParams(location.search);
@@ -158,57 +190,60 @@ let K = 10;
 let DATA = null;
 let aiJudged = new Set();
 let aiScores = {};
-let firstRender = true;  // 卡片入场 + count-up 只在首次渲染做
+let firstRender = true;
 
-function countUp(el, target, duration = 700, fmt = v => Math.round(v).toLocaleString()) {
+function countUp(el, target, duration=700, fmt = v => Math.round(v).toLocaleString()){
+  if(!el) return;
   const start = performance.now();
-  function tick(now) {
-    const t = Math.min((now - start) / duration, 1);
-    const eased = 1 - Math.pow(1 - t, 3);
+  function tick(now){
+    const t = Math.min((now-start)/duration, 1);
+    const eased = 1 - Math.pow(1-t, 3);
     el.textContent = fmt(target * eased);
-    if (t < 1) requestAnimationFrame(tick);
+    if(t < 1) requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
 }
+
+const AVATAR_COLORS = {
+  amber:"#e8804a", rose:"#d96a5f", purple:"#a76aaf", blue:"#5b8cbf", indigo:"#7470c2",
+  emerald:"#5fa68a", fuchsia:"#c065a3", sky:"#6aaacc", stone:"#a08b78", violet:"#8a72b3", slate:"#7d7468"
+};
 
 fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
   DATA = d;
   document.getElementById("concept-path").textContent = d.concept_path;
   document.getElementById("field-name").textContent = `${d.name} · ${d.chinese_name}`;
   document.getElementById("field-desc").textContent = d.description;
-  document.getElementById("meta-info").textContent = `RAG 召回 100 候选 → Top ${K} (基础排序 by hard-rule, AI 重排进行中)`;
+  document.getElementById("meta-info").textContent = `RAG 召回 100 候选 → Top ${K}`;
 
-  // Phase 1: 立即渲染骨架（硬规则排序）
   setTimeout(() => {
     renderList();
     document.getElementById("progress").style.width = "55%";
-    document.getElementById("ssestatus").textContent = "骨架已渲染 · AI 重排开始";
-    // Phase 2: SSE 流式逐个点亮 ✨
+    document.getElementById("status-text").textContent = "骨架已渲染 · AI 重排开始";
     startAIStream();
   }, 300);
 });
 
-function getWeights() {
+function getWeights(){
   const w1 = parseInt(document.getElementById("w1").value);
   const w2 = parseInt(document.getElementById("w2").value);
   const w3 = parseInt(document.getElementById("w3").value);
-  const sum = w1 + w2 + w3 || 1;
-  return { w1: w1/sum, w2: w2/sum, w3: w3/sum, raw: {w1, w2, w3, sum} };
+  const sum = w1+w2+w3 || 1;
+  return { w1: w1/sum, w2: w2/sum, w3: w3/sum };
 }
 
-function influenceScore(s, w) {
+function influenceScore(s, w){
   return w.w1 * s.metrics.h_index +
-         w.w2 * Math.log(Math.max(s.metrics.total_citations, 1)) * 10 +
-         w.w3 * Math.sqrt(Math.max(s.metrics.recent_3y_citations, 0)) * 1.5;
+         w.w2 * Math.log(Math.max(s.metrics.total_citations,1)) * 10 +
+         w.w3 * Math.sqrt(Math.max(s.metrics.recent_3y_citations,0)) * 1.5;
 }
 
-function renderList() {
+function renderList(){
   const w = getWeights();
-  const ranked = DATA.scholars.map(s => ({
-    ...s,
-    score: influenceScore(s, w)
-  })).sort((a, b) => b.score - a.score).slice(0, K);
-
+  const ranked = DATA.scholars
+    .map(s => ({...s, score: influenceScore(s, w)}))
+    .sort((a,b) => b.score - a.score)
+    .slice(0, K);
   const list = document.getElementById("list");
   list.innerHTML = "";
   const maxH = Math.max(...DATA.scholars.map(s => s.metrics.h_index));
@@ -219,82 +254,66 @@ function renderList() {
     const initial = s.chinese_name?.[0] || s.name[0];
     const judged = aiJudged.has(s.id);
     const aiScore = aiScores[s.id];
+    const avBg = AVATAR_COLORS[s.avatar_color] || "#9a8b7e";
 
-    const card = document.createElement("a");
-    card.href = `graph.html?id=${s.id}&field=${fieldId}`;
-    card.className = `rank-card block p-5 rounded-xl bg-slate-900/50 border ${judged ? 'border-amber-700/40 ai-glow' : 'border-slate-800'} hover:border-amber-500 transition${firstRender ? ' card-enter' : ''}`;
-    if (firstRender) card.style.animationDelay = (idx * 0.06) + "s";
+    const a = document.createElement("a");
+    a.href = `graph.html?id=${s.id}&field=${fieldId}`;
+    a.className = `rank-card${judged ? " ai-judged" : ""}${firstRender ? " card-enter" : ""}`;
+    if(firstRender) a.style.animationDelay = (idx * 0.06) + "s";
 
-    const pctH = (s.metrics.h_index / maxH * 100).toFixed(0);
-    const pctC = (s.metrics.total_citations / maxC * 100).toFixed(0);
-    const pctR = (s.metrics.recent_3y_citations / maxR * 100).toFixed(0);
+    const pctH = (s.metrics.h_index/maxH*100).toFixed(0);
+    const pctC = (s.metrics.total_citations/maxC*100).toFixed(0);
+    const pctR = (s.metrics.recent_3y_citations/maxR*100).toFixed(0);
+    const unv = s.metrics._unverified;
 
-    card.innerHTML = `
-      <div class="flex items-start gap-4">
-        <div class="shrink-0 flex flex-col items-center gap-1">
-          <span class="font-mono text-sm text-slate-500">#${idx + 1}</span>
-          <div class="w-14 h-14 rounded-xl bg-${s.avatar_color}-500/80 flex items-center justify-center text-2xl font-bold text-slate-900">${initial}</div>
+    a.innerHTML = `
+      <div class="rank-no">
+        <span class="num">#${idx+1}</span>
+        <div class="avatar" style="background:linear-gradient(135deg,${avBg},${avBg}cc)">${initial}</div>
+      </div>
+      <div class="body">
+        <div class="name-row">
+          <h4>${s.chinese_name || s.name}</h4>
+          ${s.chinese_name ? `<span class="en">${s.name}</span>` : ""}
+          ${unv ? `<span class="badge unverified" title="Semantic Scholar 对此学者聚类不完整，数据可能低估">⚠ SS 索引不全</span>` : ""}
+          ${judged ? `<span class="badge ai">✨ AI ${aiScore.toFixed(1)}/10</span>` : ""}
         </div>
-
-        <div class="flex-1 min-w-0">
-          <div class="flex items-baseline gap-2 mb-1">
-            <h3 class="text-lg font-semibold text-slate-100">${s.chinese_name || s.name}</h3>
-            ${s.chinese_name ? `<span class="text-sm text-slate-500">${s.name}</span>` : ""}
-            ${s.metrics?._unverified ? `<span title="Semantic Scholar 对此学者聚类不完整，数据可能低估" class="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 font-mono">⚠ SS 索引不全</span>` : ""}
-            ${judged ? `<span class="ml-2 ai-badge inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono">✨ AI ${aiScore.toFixed(1)}/10</span>` : ""}
-          </div>
-          <p class="text-xs text-slate-400 mb-2">${s.institution}</p>
-          <p class="text-sm text-slate-300 leading-snug mb-3">${s.role_in_field}</p>
-
-          <div class="grid grid-cols-3 gap-3 text-xs">
-            <div>
-              <div class="flex justify-between mb-0.5"><span class="text-slate-500">h-index</span><span class="text-amber-400 font-mono"><span class="cu-h metric-num" data-target="${s.metrics.h_index}">${firstRender ? 0 : s.metrics.h_index}</span></span></div>
-              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500 transition-all duration-500" style="width:${pctH}%"></div></div>
-            </div>
-            <div>
-              <div class="flex justify-between mb-0.5"><span class="text-slate-500">total cit</span><span class="text-amber-400 font-mono"><span class="cu-c metric-num" data-target="${s.metrics.total_citations}">${firstRender ? '0' : (s.metrics.total_citations/1000).toFixed(0)+'k'}</span></span></div>
-              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500 transition-all duration-500" style="width:${pctC}%"></div></div>
-            </div>
-            <div>
-              <div class="flex justify-between mb-0.5"><span class="text-slate-500">recent 3y</span><span class="text-amber-400 font-mono"><span class="cu-r metric-num" data-target="${s.metrics.recent_3y_citations}">${firstRender ? '0' : (s.metrics.recent_3y_citations/1000).toFixed(1)+'k'}</span></span></div>
-              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500 transition-all duration-500" style="width:${pctR}%"></div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="shrink-0 text-right">
-          <p class="text-[10px] text-slate-500 mb-1">field papers</p>
-          <p class="text-2xl font-bold text-slate-200">${s.metrics.field_papers}</p>
-          <p class="text-[10px] text-slate-600 mt-2 font-mono">score ${s.score.toFixed(1)}</p>
+        <p class="inst">${s.institution}</p>
+        <p class="role">${s.role_in_field}</p>
+        <div class="metrics">
+          <div class="m"><div class="row"><span class="k">h-index</span><span class="v"><span class="cu-h" data-target="${s.metrics.h_index}">${firstRender ? 0 : s.metrics.h_index}</span></span></div><div class="bar"><div style="width:${pctH}%"></div></div></div>
+          <div class="m"><div class="row"><span class="k">total cit</span><span class="v"><span class="cu-c" data-target="${s.metrics.total_citations}">${firstRender ? '0' : (s.metrics.total_citations/1000).toFixed(0)+'k'}</span></span></div><div class="bar"><div style="width:${pctC}%"></div></div></div>
+          <div class="m"><div class="row"><span class="k">recent 3y</span><span class="v"><span class="cu-r" data-target="${s.metrics.recent_3y_citations}">${firstRender ? '0' : (s.metrics.recent_3y_citations/1000).toFixed(1)+'k'}</span></span></div><div class="bar"><div style="width:${pctR}%"></div></div></div>
         </div>
       </div>
+      <div class="field-cnt">
+        <p class="lbl">field papers</p>
+        <p class="v">${s.metrics.field_papers}</p>
+        <p class="score">score ${s.score.toFixed(1)}</p>
+      </div>
     `;
-    list.appendChild(card);
+    list.appendChild(a);
   });
 
-  document.getElementById("meta-info").textContent =
-    `RAG 召回 100 候选 → Top ${K} (${aiJudged.size}/${Math.min(K, DATA.scholars.length)} AI 评审)`;
+  document.getElementById("meta-info").textContent = `RAG 召回 100 候选 → Top ${K} (${aiJudged.size}/${Math.min(K,DATA.scholars.length)} AI 评审)`;
 
-  // 首次渲染：数字 count-up 动画（拖滑块时不再触发）
-  if (firstRender) {
+  if(firstRender){
     requestAnimationFrame(() => {
       document.querySelectorAll(".cu-h").forEach(el => countUp(el, +el.dataset.target, 700, v => Math.round(v)));
-      document.querySelectorAll(".cu-c").forEach(el => countUp(el, +el.dataset.target, 900, v => (v/1000).toFixed(0) + "k"));
-      document.querySelectorAll(".cu-r").forEach(el => countUp(el, +el.dataset.target, 900, v => (v/1000).toFixed(1) + "k"));
+      document.querySelectorAll(".cu-c").forEach(el => countUp(el, +el.dataset.target, 900, v => (v/1000).toFixed(0)+"k"));
+      document.querySelectorAll(".cu-r").forEach(el => countUp(el, +el.dataset.target, 900, v => (v/1000).toFixed(1)+"k"));
     });
     firstRender = false;
   }
 }
 
-// 权重滑块联动（不强制约束，但在底部显示 raw 和）
-["w1", "w2", "w3"].forEach(id => {
+["w1","w2","w3"].forEach(id => {
   document.getElementById(id).addEventListener("input", () => {
     const w = getWeights();
-    document.getElementById("w1-val").textContent = Math.round(w.w1 * 100) + "%";
-    document.getElementById("w2-val").textContent = Math.round(w.w2 * 100) + "%";
-    document.getElementById("w3-val").textContent = Math.round(w.w3 * 100) + "%";
-    document.getElementById("weight-sum").textContent = `(归一化前 raw 和: ${w.raw.sum})`;
-    if (DATA) renderList();
+    document.getElementById("w1-val").textContent = Math.round(w.w1*100)+"%";
+    document.getElementById("w2-val").textContent = Math.round(w.w2*100)+"%";
+    document.getElementById("w3-val").textContent = Math.round(w.w3*100)+"%";
+    if(DATA) renderList();
   });
 });
 
@@ -305,36 +324,31 @@ document.getElementById("reset").addEventListener("click", () => {
   document.getElementById("w1").dispatchEvent(new Event("input"));
 });
 
-// K 选择
 document.querySelectorAll(".k-btn").forEach(b => {
   b.addEventListener("click", () => {
-    document.querySelectorAll(".k-btn").forEach(x => { x.classList.remove("bg-amber-500", "text-slate-900", "font-medium"); x.classList.add("bg-slate-800", "text-slate-300"); });
-    b.classList.remove("bg-slate-800", "text-slate-300");
-    b.classList.add("bg-amber-500", "text-slate-900", "font-medium");
+    document.querySelectorAll(".k-btn").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
     K = parseInt(b.dataset.k);
-    if (DATA) renderList();
+    if(DATA) renderList();
   });
 });
 
-// SSE 假动画：每个学者按顺序点亮 AI 评分
-async function startAIStream() {
-  const sorted = DATA.scholars.map(s => ({...s, score: influenceScore(s, getWeights())}))
-                              .sort((a, b) => b.score - a.score);
-  for (let i = 0; i < Math.min(K, sorted.length); i++) {
-    await new Promise(r => setTimeout(r, 400 + Math.random() * 200));
+async function startAIStream(){
+  const sorted = DATA.scholars
+    .map(s => ({...s, score: influenceScore(s, getWeights())}))
+    .sort((a,b) => b.score - a.score);
+  for(let i = 0; i < Math.min(K, sorted.length); i++){
+    await new Promise(r => setTimeout(r, 400 + Math.random()*200));
     const s = sorted[i];
     aiJudged.add(s.id);
-    // mock AI 评分：跟硬规则有相关性，但略加扰动
-    aiScores[s.id] = Math.min(10, Math.max(6, 7.5 + (s.metrics.centrality - 0.5) * 4 + (Math.random() - 0.5) * 0.8));
+    aiScores[s.id] = Math.min(10, Math.max(6, 7.5 + (s.metrics.centrality - 0.5)*4 + (Math.random()-0.5)*0.8));
     renderList();
-    const pct = 55 + (i + 1) / Math.min(K, sorted.length) * 45;
+    const pct = 55 + (i+1)/Math.min(K, sorted.length)*45;
     document.getElementById("progress").style.width = pct + "%";
   }
-  document.getElementById("ssestatus").textContent = "AI 重排完成";
-  document.getElementById("ssestatus-dot").classList.remove("bg-amber-400", "animate-pulse");
-  document.getElementById("ssestatus-dot").classList.add("bg-emerald-400");
+  document.getElementById("status-text").textContent = "AI 重排完成";
+  document.getElementById("status-dot").classList.add("done");
 }
 </script>
-
 </body>
 </html>

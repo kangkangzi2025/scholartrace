@@ -1,266 +1,357 @@
-<!doctype html>
-<html lang="zh-Hans">
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ScholarTrace · 学者学术圈网络图谱</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ScholarTrace · 学脉</title>
 <style>
-  :root { --bg: #0a0e1a; --ink: #fef3c7; --accent: #f59e0b; }
-  html, body { background: var(--bg); color: #e2e8f0; }
-  body { font-family: "Inter", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-  .font-serif-zh { font-family: "Noto Serif SC", serif; }
-  .font-mono { font-family: "JetBrains Mono", monospace; }
-  .bg-glow { background-image: radial-gradient(circle at 50% 0%, rgba(245,158,11,0.15), transparent 60%); }
-  .blink::after { content: "▌"; animation: blink 1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-  .terminal { font-family: "JetBrains Mono", monospace; line-height: 1.7; }
-  .card-hover { transition: all 0.2s ease; }
-  .card-hover:hover { transform: translateY(-3px); border-color: #f59e0b; }
-  ::selection { background: #f59e0b; color: #0a0e1a; }
-  .mode-active { background: #f59e0b; color: #0a0e1a; }
-  @keyframes lineIn {
-    from { opacity: 0; transform: translateX(-10px); }
-    to { opacity: 1; transform: translateX(0); }
+  :root{
+    --blue:#d97757;
+    --blue-hover:#c2410c;
+    --ink:#2b2118;
+    --gray:#6b5d52;
+    --gray-soft:#9a8b7e;
+    --border:#ece2d8;
+    --bg:#faf6f2;
+    --link:#b8551e;
+    --c-self:#e8804a;
+    --c-advisor:#f0a060;
+    --c-collab:#f5bd87;
+    --c-paper:#f8d9b8;
+    --shadow-sm:0 1px 2px rgba(120,72,40,.07),0 1px 3px rgba(120,72,40,.10);
+    --shadow-md:0 4px 12px rgba(120,72,40,.09),0 2px 4px rgba(120,72,40,.06);
+    --shadow-lg:0 12px 32px rgba(120,72,40,.14),0 4px 8px rgba(120,72,40,.07);
   }
-  .line-enter { animation: lineIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  @keyframes cardIn {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    font-family:'Inter','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+    color:var(--ink);background:var(--bg);
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    display:flex;flex-direction:column;min-height:100%;position:relative;
   }
-  .card-in { opacity: 0; animation: cardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  @keyframes float-y {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-1;
+    background:
+      radial-gradient(680px 480px at 18% -8%, rgba(217,119,87,.16), transparent 60%),
+      radial-gradient(560px 420px at 92% 6%, rgba(240,168,104,.12), transparent 60%),
+      radial-gradient(700px 500px at 50% 120%, rgba(194,65,12,.07), transparent 60%),
+      var(--bg);
   }
-  .float-soft { animation: float-y 3.5s ease-in-out infinite; }
+  ::selection{background:rgba(217,119,87,.25);color:var(--ink);}
+  .hero{display:flex;flex-direction:column;align-items:center;padding-top:min(14vh,140px);padding-bottom:54px;animation:rise .7s cubic-bezier(.2,.7,.3,1) both;}
+  @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+  .logo{display:flex;align-items:center;gap:13px;margin-bottom:30px;user-select:none;}
+  .logo .cap{filter:drop-shadow(0 6px 14px rgba(217,119,87,.40));}
+  .logo .word{display:flex;align-items:center;gap:12px;font-weight:300;letter-spacing:-.5px;}
+  .logo .word b{
+    font-size:36px;font-weight:800;letter-spacing:-1px;
+    background:linear-gradient(120deg,#c2410c 0%,#d97757 45%,#f0a868 100%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 2px 10px rgba(217,119,87,.45));
+  }
+  .logo .word .zh{font-size:36px;font-weight:400;color:var(--gray);letter-spacing:1px;}
+  .tagline{margin:-6px 0 26px;text-align:center;color:var(--gray);font-size:14.5px;letter-spacing:.2px;}
+  .tagline b{color:var(--blue-hover);font-weight:550;}
+  .search-wrap{width:min(660px,92vw);}
+  .search-box{display:flex;align-items:center;gap:6px;padding:0 8px 0 20px;height:56px;background:rgba(255,253,251,.78);backdrop-filter:blur(12px) saturate(140%);-webkit-backdrop-filter:blur(12px) saturate(140%);border:1px solid var(--border);border-radius:30px;box-shadow:var(--shadow-sm);transition:box-shadow .2s,border-color .2s;}
+  .search-box .lead-ico{flex:0 0 auto;opacity:.5;}
+  .search-box.focused{box-shadow:var(--shadow-lg);border-color:rgba(217,119,87,.50);background:rgba(255,253,251,.95);}
+  .search-box input{flex:1;border:0;outline:0;background:transparent;font-size:17px;height:100%;color:var(--ink);font-family:inherit;}
+  .search-box input::placeholder{color:var(--gray-soft);}
+  .search-box .clear{display:none;cursor:pointer;color:var(--gray-soft);font-size:22px;line-height:1;padding:0 8px;border-radius:50%;transition:color .15s;}
+  .search-box .clear:hover{color:var(--ink);}
+  .search-box.has-text .clear{display:block;}
+  .search-btn{border:0;cursor:pointer;flex:0 0 auto;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#d97757,#c2410c);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(194,65,12,.40);transition:transform .1s,box-shadow .2s;}
+  .search-btn:hover{box-shadow:0 5px 14px rgba(194,65,12,.5);}
+  .search-btn:active{transform:scale(.92);}
+  .search-btn svg{fill:#fff;width:21px;height:21px;}
+  .search-actions{display:flex;justify-content:center;gap:10px;margin-top:24px;}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--gray);cursor:pointer;padding:7px 16px;border-radius:18px;border:1px solid var(--border);background:rgba(255,253,251,.65);transition:all .16s;}
+  .chip:hover{border-color:rgba(217,119,87,.45);color:var(--ink);}
+  .chip.active{background:rgba(217,119,87,.12);border-color:rgba(217,119,87,.55);color:var(--blue-hover);font-weight:500;}
+  .chip .tick{width:7px;height:7px;border-radius:50%;background:var(--blue);opacity:0;transition:opacity .16s;}
+  .chip.active .tick{opacity:1;}
+  .suggests{display:flex;justify-content:center;gap:8px;margin-top:18px;flex-wrap:wrap;}
+  .suggest{font-size:12px;padding:5px 12px;border-radius:14px;border:1px dashed var(--border);background:rgba(255,253,251,.4);color:var(--gray);cursor:pointer;transition:all .15s;}
+  .suggest:hover{border-color:rgba(217,119,87,.5);border-style:solid;color:var(--blue-hover);background:rgba(255,253,251,.85);}
+  .suggest:disabled{opacity:.45;cursor:not-allowed;}
+  .hint{height:22px;margin-top:14px;font-size:13px;color:var(--gray-soft);text-align:center;opacity:0;transition:opacity .22s;}
+  .hint.show{opacity:1;}
+  .hint.warn{color:#d93025;}
+
+  section.fields, section.pipeline{max-width:1020px;margin:0 auto;padding:8px 24px 40px;}
+  section h3.sec-title{font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gray-soft);margin-bottom:14px;}
+  .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+  .field-card{background:rgba(255,253,251,.78);border:1px solid var(--border);border-radius:14px;padding:18px;text-decoration:none;color:inherit;box-shadow:var(--shadow-sm);transition:transform .18s,box-shadow .2s,border-color .2s;display:block;}
+  .field-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:rgba(217,119,87,.45);}
+  .field-card.disabled{opacity:.55;cursor:default;}
+  .field-card.disabled:hover{transform:none;box-shadow:var(--shadow-sm);border-color:var(--border);}
+  .field-card .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .field-card .name{font-size:15px;font-weight:650;color:var(--ink);letter-spacing:-.2px;}
+  .field-card .count{font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(217,119,87,.13);color:var(--blue-hover);font-weight:600;}
+  .field-card .sub{font-size:12px;color:var(--gray);margin-bottom:8px;}
+  .field-card .desc{font-size:12.5px;color:var(--gray);line-height:1.6;margin-bottom:10px;}
+  .field-card .tags{display:flex;gap:6px;}
+  .field-card .tag{font-size:10.5px;padding:2px 8px;border-radius:8px;background:rgba(120,72,40,.06);color:var(--gray);font-family:'JetBrains Mono',monospace;}
+
+  .pipeline-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+  .stage{background:rgba(255,253,251,.6);border:1px solid var(--border);border-radius:12px;padding:14px;}
+  .stage .step{font-size:10px;color:var(--blue-hover);font-weight:700;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:4px;}
+  .stage .name{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:4px;}
+  .stage .desc{font-size:11.5px;color:var(--gray);line-height:1.55;}
+
+  footer{font-size:12.5px;color:var(--gray-soft);padding:18px 28px;display:flex;gap:22px;flex-wrap:wrap;border-top:1px solid var(--border);background:rgba(247,240,233,.6);margin-top:auto;}
+  footer a{color:var(--gray-soft);text-decoration:none;}
+  footer a:hover{color:var(--ink);text-decoration:underline;}
+  footer .spacer{flex:1;}
+
+  /* === Modal: 概念对齐 === */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(43,33,24,.30);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:50;display:none;align-items:center;justify-content:center;padding:24px;animation:fadeIn .2s ease both;}
+  .modal-backdrop.show{display:flex;}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal{max-width:440px;width:100%;background:#fffdfb;border:1px solid var(--border);border-radius:20px;padding:26px;box-shadow:var(--shadow-lg);animation:modalIn .35s cubic-bezier(.16,1,.3,1) both;}
+  @keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.97);}to{opacity:1;transform:none;}}
+  .modal .stage{font-size:10px;color:var(--blue-hover);font-weight:700;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:6px;background:none;border:none;padding:0;}
+  .modal .uin{color:var(--gray);font-size:13px;margin-bottom:14px;}
+  .modal .uin .q{font-family:'JetBrains Mono',monospace;color:var(--blue-hover);background:rgba(217,119,87,.10);padding:1px 6px;border-radius:4px;}
+  .modal .prompt{color:var(--ink);font-size:14px;margin-bottom:14px;}
+  .aligned-box{background:rgba(217,119,87,.06);border:1px solid rgba(217,119,87,.25);border-radius:14px;padding:18px;margin-bottom:18px;}
+  .aligned-box .name{font-size:24px;font-weight:700;color:var(--blue-hover);letter-spacing:-.5px;line-height:1.1;}
+  .aligned-box .cn{font-size:14px;color:var(--gray);margin-top:3px;}
+  .aligned-box .path{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray-soft);margin-top:10px;line-height:1.5;}
+  .aligned-box .d{font-size:12.5px;color:var(--gray);margin-top:8px;line-height:1.55;}
+  .modal-btns{display:flex;gap:10px;}
+  .btn{flex:1;padding:11px 0;border:0;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .14s;font-family:inherit;}
+  .btn-ghost{background:#f7eee5;color:var(--gray);}
+  .btn-ghost:hover{background:#f0e3d4;color:var(--ink);}
+  .btn-primary{background:linear-gradient(135deg,#d97757,#c2410c);color:#fff;box-shadow:0 3px 8px rgba(194,65,12,.30);}
+  .btn-primary:hover{box-shadow:0 5px 14px rgba(194,65,12,.40);}
+
+  /* === Overlay: Agent Terminal === */
+  .overlay{position:fixed;inset:0;background:rgba(43,33,24,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:60;display:none;justify-content:center;padding:24px;overflow-y:auto;}
+  .overlay.show{display:flex;padding-top:8vh;}
+  .terminal-wrap{max-width:640px;width:100%;background:rgba(255,253,251,.97);border:1px solid var(--border);border-radius:18px;padding:28px 32px;box-shadow:var(--shadow-lg);align-self:flex-start;}
+  .terminal-head{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+  .terminal-head .dot{width:8px;height:8px;border-radius:50%;background:var(--blue);animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .terminal-head span{font-size:13px;color:var(--blue-hover);font-family:'JetBrains Mono',monospace;}
+  .terminal{font-family:'JetBrains Mono','Menlo',monospace;font-size:13px;line-height:1.85;color:var(--ink);white-space:pre-wrap;}
+  .terminal .stage-name{color:var(--blue-hover);font-weight:600;}
+  .terminal .ok{color:#0e9f6e;}
+  .terminal .warn{color:#b08200;}
+  .terminal .high{color:var(--blue-hover);background:rgba(217,119,87,.08);padding:0 4px;border-radius:3px;}
+  .terminal .blink::after{content:"▌";color:var(--blue-hover);animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+  @keyframes lineIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:none;}}
+  .terminal > div{animation:lineIn .18s cubic-bezier(.16,1,.3,1) both;}
+
+  @media(max-width:560px){.logo .word b{font-size:28px;}.logo .word .zh{font-size:28px;}}
 </style>
 </head>
-<body class="min-h-screen bg-glow">
-
-<header class="px-8 py-6 flex items-center justify-between">
-  <div class="flex items-center gap-3">
-    <div class="w-9 h-9 rounded-md bg-amber-500 flex items-center justify-center font-bold text-slate-900">ST</div>
-    <div>
-      <h1 class="text-xl font-semibold tracking-wide">ScholarTrace</h1>
-      <p class="text-xs text-slate-400 -mt-0.5">学者学术圈网络图谱</p>
+<body>
+  <section class="hero">
+    <div class="logo">
+      <svg class="cap" width="50" height="50" viewBox="0 0 50 50" aria-hidden="true">
+        <defs><linearGradient id="capG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8804a"/><stop offset="1" stop-color="#c2410c"/></linearGradient></defs>
+        <circle cx="25" cy="25" r="25" fill="url(#capG)"/>
+        <path d="M25 13 L41 20.5 L25 28 L9 20.5 Z" fill="#fff"/>
+        <path d="M15 23.5 L15 31 C15 33.7 19.5 35.4 25 35.4 C30.5 35.4 35 33.7 35 31 L35 23.5 L25 28 Z" fill="#fff" opacity=".9"/>
+        <rect x="40" y="20.5" width="1.7" height="10" rx=".8" fill="#fff"/>
+        <circle cx="40.85" cy="31.5" r="2" fill="#fff"/>
+      </svg>
+      <div class="word"><b>ScholarTrace</b><span class="zh">学脉</span></div>
     </div>
-  </div>
-  <nav class="text-sm text-slate-400 flex gap-6">
-    <a href="#" class="hover:text-amber-400">已收录领域</a>
-    <a href="#" class="hover:text-amber-400">关于</a>
-  </nav>
-</header>
-
-<main class="max-w-4xl mx-auto px-6 mt-16">
-
-  <h2 class="font-serif-zh text-5xl md:text-6xl font-bold leading-tight text-center">
-    <span class="text-amber-400">输入一个领域</span><br>
-    <span class="text-slate-300">看清那群人是谁</span>
-  </h2>
-  <p class="mt-6 text-center text-slate-400 max-w-2xl mx-auto leading-relaxed">
-    给任意研究领域，ScholarTrace 用 RAG + LLM-as-a-judge 召回核心学者，
-    按 4 项硬指标（h-index / 总引 / 近 3 年 / 中心性）排序，
-    渲染出 1.5 度的可交互引用图谱。
-  </p>
-
-  <!-- 双模式 toggle -->
-  <div class="mt-10 flex justify-center">
-    <div class="inline-flex rounded-full bg-slate-900 border border-slate-700 p-1">
-      <button id="mode-domain" class="mode-active px-5 py-2 rounded-full text-sm font-medium transition">🎯 领域 Domain</button>
-      <button id="mode-person" class="px-5 py-2 rounded-full text-sm text-slate-400 transition">👤 学者 Person</button>
+    <p class="tagline">输入一个领域，看清<b>那群人</b>是谁 · RAG 召回 + LLM-as-a-judge 重排 + 1.5 度可视化</p>
+    <div class="search-wrap">
+      <div class="search-box" id="searchBox">
+        <svg class="lead-ico" width="20" height="20" viewBox="0 0 24 24"><path fill="#9a8b7e" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+        <input id="q" type="text" autocomplete="off" placeholder="输入研究领域，例如 Learning to Rank / 学习排序 / L2R" autofocus aria-label="搜索">
+        <span class="clear" id="clearBtn" title="清除">&times;</span>
+        <button class="search-btn" id="go" title="检索"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
+      </div>
+      <div class="search-actions">
+        <span class="chip active" data-mode="domain"><span class="tick"></span>🎯 领域 Domain</span>
+        <span class="chip" data-mode="person"><span class="tick"></span>👤 学者 Person</span>
+      </div>
+      <div class="suggests">
+        <span>试试：</span>
+        <button class="suggest" data-q="Learning to Rank">Learning to Rank</button>
+        <button class="suggest" data-q="学习排序">学习排序</button>
+        <button class="suggest" data-q="L2R">L2R</button>
+        <button class="suggest" disabled>Diffusion Models（待录入）</button>
+      </div>
+      <div class="hint" id="hint"></div>
     </div>
-  </div>
+  </section>
 
-  <!-- 搜索框 -->
-  <div class="mt-6 relative">
-    <input id="q" type="text"
-           placeholder="输入研究领域，例如 Learning to Rank / 学习排序 / L2R"
-           class="w-full px-6 py-5 text-lg rounded-2xl bg-slate-900/70 border border-slate-700 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/30 outline-none transition placeholder:text-slate-600"
-           autofocus>
-    <button id="go"
-            class="absolute right-3 top-1/2 -translate-y-1/2 px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-900 font-medium transition">
-      检索 ↵
-    </button>
-  </div>
-
-  <div class="mt-6 flex items-center justify-center gap-3 text-xs text-slate-500 flex-wrap">
-    <span>试试：</span>
-    <button class="suggest px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 hover:text-amber-300" data-q="Learning to Rank">Learning to Rank</button>
-    <button class="suggest px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 hover:text-amber-300" data-q="学习排序">学习排序</button>
-    <button class="suggest px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 hover:text-amber-300" data-q="L2R">L2R</button>
-    <button class="suggest px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 hover:text-amber-300 opacity-50" data-q="Diffusion Models" disabled>Diffusion Models (待录入)</button>
-  </div>
-
-  <!-- 已收录领域 -->
-  <section class="mt-24">
-    <h3 class="text-sm uppercase tracking-widest text-slate-500 mb-6">已收录领域 · MVP v1.0</h3>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-      <a href="list.html?id=learning-to-rank" class="card-hover block p-5 rounded-xl bg-slate-900/50 border border-slate-800">
-        <div class="flex items-center justify-between mb-3">
-          <p class="font-medium">Learning to Rank</p>
-          <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-400">12 学者</span>
-        </div>
-        <p class="text-xs text-slate-500 mb-2">学习排序 / 排序学习</p>
-        <p class="text-xs text-slate-400 leading-relaxed">IR + ML 交叉领域，2005-2018 黄金期；pointwise / pairwise / listwise 三大流派。</p>
-        <div class="mt-3 flex gap-2 text-[10px] text-slate-500">
-          <span class="px-2 py-0.5 rounded bg-slate-800">CS</span>
-          <span class="px-2 py-0.5 rounded bg-slate-800">IR</span>
-          <span class="px-2 py-0.5 rounded bg-slate-800">ML</span>
-        </div>
+  <section class="fields">
+    <h3 class="sec-title">已收录领域 · MVP v1.0</h3>
+    <div class="field-grid">
+      <a class="field-card" href="list.html?id=learning-to-rank">
+        <div class="row"><span class="name">Learning to Rank</span><span class="count">12 学者</span></div>
+        <p class="sub">学习排序 / 排序学习</p>
+        <p class="desc">IR + ML 交叉，2005-2018 黄金期；pointwise → pairwise → listwise 三大流派。</p>
+        <div class="tags"><span class="tag">CS</span><span class="tag">IR</span><span class="tag">ML</span></div>
       </a>
-
-      <div class="block p-5 rounded-xl bg-slate-900/30 border border-slate-800 border-dashed opacity-50">
-        <p class="font-medium text-slate-400 mb-2">Diffusion Models</p>
-        <p class="text-xs text-slate-500 leading-relaxed">v1.1 → 拓展到 generative AI 领域</p>
+      <div class="field-card disabled">
+        <div class="row"><span class="name" style="color:var(--gray-soft)">Diffusion Models</span><span class="count" style="background:rgba(120,72,40,.07);color:var(--gray-soft)">v1.1</span></div>
+        <p class="desc" style="color:var(--gray-soft)">拓展到 generative AI 领域</p>
       </div>
-
-      <div class="block p-5 rounded-xl bg-slate-900/30 border border-slate-800 border-dashed opacity-50">
-        <p class="font-medium text-slate-400 mb-2">RLHF</p>
-        <p class="text-xs text-slate-500 leading-relaxed">v1.1 → 对齐与人类反馈</p>
+      <div class="field-card disabled">
+        <div class="row"><span class="name" style="color:var(--gray-soft)">RLHF</span><span class="count" style="background:rgba(120,72,40,.07);color:var(--gray-soft)">v1.1</span></div>
+        <p class="desc" style="color:var(--gray-soft)">对齐与人类反馈</p>
       </div>
-
     </div>
   </section>
 
-  <!-- 4 阶段管线 -->
-  <section class="mt-24 grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
-    <div class="p-4 rounded-lg bg-slate-900/40 border border-slate-800">
-      <p class="text-amber-400 font-mono mb-1">Stage 1</p>
-      <p class="text-slate-300 mb-1">概念对齐</p>
-      <p class="text-slate-500 leading-relaxed">OpenAlex Concept Tree + LLM 同义词归并</p>
-    </div>
-    <div class="p-4 rounded-lg bg-slate-900/40 border border-slate-800">
-      <p class="text-amber-400 font-mono mb-1">Stage 2</p>
-      <p class="text-slate-300 mb-1">RAG 召回</p>
-      <p class="text-slate-500 leading-relaxed">Qdrant ANN · Top 100 候选学者，Recall@100 ≥ 90%</p>
-    </div>
-    <div class="p-4 rounded-lg bg-slate-900/40 border border-slate-800">
-      <p class="text-amber-400 font-mono mb-1">Stage 3</p>
-      <p class="text-slate-300 mb-1">硬规则排序</p>
-      <p class="text-slate-500 leading-relaxed">h-index / 总引 / 近 3 年活跃度 三滑块加权</p>
-    </div>
-    <div class="p-4 rounded-lg bg-slate-900/40 border border-slate-800">
-      <p class="text-amber-400 font-mono mb-1">Stage 4</p>
-      <p class="text-slate-300 mb-1">LLM-as-a-judge</p>
-      <p class="text-slate-500 leading-relaxed">SSE 流式打分 · 关联理由生成 · ✨ 节点点亮</p>
+  <section class="pipeline">
+    <h3 class="sec-title">检索管线 · How it works</h3>
+    <div class="pipeline-grid">
+      <div class="stage"><div class="step">STAGE 1</div><div class="name">概念对齐</div><p class="desc">OpenAlex Concept Tree + LLM 同义词归并</p></div>
+      <div class="stage"><div class="step">STAGE 2</div><div class="name">RAG 召回</div><p class="desc">Qdrant ANN · Top 100 候选 · Recall@100 ≥ 90%</p></div>
+      <div class="stage"><div class="step">STAGE 3</div><div class="name">硬规则排序</div><p class="desc">h-index / 总引 / 近 3 年三滑块加权</p></div>
+      <div class="stage"><div class="step">STAGE 4</div><div class="name">LLM-as-a-judge</div><p class="desc">SSE 流式打分 · 关联理由 · 节点点亮 ✨</p></div>
     </div>
   </section>
 
-  <footer class="mt-24 mb-12 text-center text-xs text-slate-600">
-    Beijing Zhongguancun Academy · AI Future Hackathon 2026<br>
-    Recall@100 ≥ 90% · 首屏 ≤ 1.5s · AI 重排 ≤ 5s
+  <footer>
+    <a href="https://github.com/kangkangzi2025/scholartrace" target="_blank">GitHub</a>
+    <a href="#">关于</a>
+    <a href="#">隐私</a>
+    <span class="spacer"></span>
+    <span>北京中关村学院 · AI Future Hackathon 2026</span>
   </footer>
-</main>
 
-<!-- 概念对齐 Modal -->
-<div id="modal" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-40 flex items-center justify-center px-6">
-  <div class="max-w-md w-full rounded-2xl bg-slate-900 border border-slate-700 p-7">
-    <p class="text-xs font-mono text-amber-400 mb-2">[Stage 1] Concept Alignment</p>
-    <p class="text-sm text-slate-400 mb-4">检测到输入：<span id="user-input" class="text-amber-300 font-mono"></span></p>
-    <p class="text-slate-200 mb-2">是否对齐到以下领域？</p>
-    <div class="rounded-xl bg-slate-800 p-5 my-4">
-      <p class="font-serif-zh text-2xl font-bold text-amber-400" id="aligned-name"></p>
-      <p class="text-sm text-slate-400 mt-1" id="aligned-cn"></p>
-      <p class="text-xs text-slate-500 mt-3 font-mono" id="aligned-path"></p>
-      <p class="text-xs text-slate-500 mt-3" id="aligned-desc"></p>
-    </div>
-    <div class="flex gap-3">
-      <button id="modal-cancel" class="flex-1 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm text-slate-300">不是这个</button>
-      <button id="modal-confirm" class="flex-1 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-900 text-sm font-medium">确认 · 检索 →</button>
+  <!-- 概念对齐 Modal -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal">
+      <p class="stage">[STAGE 1] CONCEPT ALIGNMENT</p>
+      <p class="uin">检测到输入 <span class="q" id="user-input"></span></p>
+      <p class="prompt">是否对齐到以下领域？</p>
+      <div class="aligned-box">
+        <p class="name" id="aligned-name"></p>
+        <p class="cn" id="aligned-cn"></p>
+        <p class="path" id="aligned-path"></p>
+        <p class="d" id="aligned-desc"></p>
+      </div>
+      <div class="modal-btns">
+        <button class="btn btn-ghost" id="modal-cancel">不是这个</button>
+        <button class="btn btn-primary" id="modal-confirm">确认 · 检索 →</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- 调查中 Overlay -->
-<div id="overlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-50 flex items-start justify-center pt-20 px-6">
-  <div class="max-w-2xl w-full">
-    <div class="flex items-center gap-3 mb-6 text-amber-400">
-      <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div>
-      <span class="text-sm font-mono">scholartrace agent · RAG pipeline running</span>
+  <!-- Agent Terminal Overlay -->
+  <div class="overlay" id="overlay">
+    <div class="terminal-wrap">
+      <div class="terminal-head"><span class="dot"></span><span>scholartrace agent · RAG pipeline running</span></div>
+      <pre id="log" class="terminal"></pre>
     </div>
-    <pre id="log" class="terminal text-sm text-slate-300 whitespace-pre-wrap"></pre>
   </div>
-</div>
 
 <script>
-// Domain registry
 const DOMAINS = {
   "learning-to-rank": {
     id: "learning-to-rank",
     name: "Learning to Rank",
     chinese: "学习排序",
-    aliases: ["l2r", "ltr", "learning to rank", "学习排序", "排序学习", "ranking model", "search ranking"],
+    aliases: ["l2r","ltr","learning to rank","学习排序","排序学习","ranking model","search ranking"],
     concept_path: "CS → AI → Machine Learning → Information Retrieval → Learning to Rank",
     desc: "IR + ML 交叉。2005-2018 黄金期，pointwise → pairwise → listwise 三大流派。"
   }
 };
 
-function normalize(s) { return s.toLowerCase().replace(/[-\s_]/g, ' ').replace(/\s+/g, ' ').trim(); }
-
-function resolveDomain(input) {
+function normalize(s){return s.toLowerCase().replace(/[-\s_]/g," ").replace(/\s+/g," ").trim();}
+function resolveDomain(input){
   const n = normalize(input);
-  for (const [id, d] of Object.entries(DOMAINS)) {
-    if (d.aliases.some(a => normalize(a) === n || n.includes(normalize(a)))) return d;
+  for(const [id,d] of Object.entries(DOMAINS)){
+    if(d.aliases.some(a => normalize(a) === n || n.includes(normalize(a)))) return d;
   }
   return null;
 }
 
-// Mode toggle
+const box = document.getElementById("searchBox");
+const input = document.getElementById("q");
+const clearBtn = document.getElementById("clearBtn");
+const goBtn = document.getElementById("go");
+const hint = document.getElementById("hint");
 let mode = "domain";
-document.getElementById("mode-domain").addEventListener("click", () => {
-  mode = "domain";
-  document.getElementById("mode-domain").classList.add("mode-active");
-  document.getElementById("mode-domain").classList.remove("text-slate-400");
-  document.getElementById("mode-person").classList.remove("mode-active");
-  document.getElementById("mode-person").classList.add("text-slate-400");
-  document.getElementById("q").placeholder = "输入研究领域，例如 Learning to Rank / 学习排序 / L2R";
-});
-document.getElementById("mode-person").addEventListener("click", () => {
-  mode = "person";
-  document.getElementById("mode-person").classList.add("mode-active");
-  document.getElementById("mode-person").classList.remove("text-slate-400");
-  document.getElementById("mode-domain").classList.remove("mode-active");
-  document.getElementById("mode-domain").classList.add("text-slate-400");
-  document.getElementById("q").placeholder = "输入学者姓名 [v1.1 即将上线，请用领域模式]";
+
+input.addEventListener("focus", () => box.classList.add("focused"));
+input.addEventListener("blur", () => box.classList.remove("focused"));
+input.addEventListener("input", () => box.classList.toggle("has-text", input.value.length > 0));
+clearBtn.addEventListener("click", () => { input.value = ""; box.classList.remove("has-text"); input.focus(); });
+
+document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+  document.querySelectorAll(".chip").forEach(x => x.classList.remove("active"));
+  c.classList.add("active");
+  mode = c.dataset.mode;
+  input.placeholder = mode === "person"
+    ? "输入学者姓名 [v1.1 即将上线]"
+    : "输入研究领域，例如 Learning to Rank / 学习排序 / L2R";
+}));
+
+document.querySelectorAll(".suggest").forEach(b => {
+  if(b.disabled) return;
+  b.addEventListener("click", () => { input.value = b.dataset.q; box.classList.add("has-text"); search(); });
 });
 
-// Search flow
+let hintTimer;
+function showHint(msg, warn){ hint.textContent = msg; hint.classList.toggle("warn", !!warn); hint.classList.add("show"); clearTimeout(hintTimer); hintTimer = setTimeout(() => hint.classList.remove("show"), 2800); }
+
+function search(){
+  const v = input.value.trim();
+  if(!v){ showHint("请输入检索内容", true); box.classList.add("focused"); input.focus();
+    box.animate([{transform:"translateX(0)"},{transform:"translateX(-5px)"},{transform:"translateX(5px)"},{transform:"translateX(0)"}],{duration:240}); return; }
+  if(mode === "person"){ showHint("人名模式将在 v1.1 上线，请切回领域模式", true); return; }
+  const d = resolveDomain(v);
+  const fallback = !d;
+  const dom = d || DOMAINS["learning-to-rank"];
+  showAlignModal(v, dom, fallback);
+}
+
+function showAlignModal(rawInput, domain, isFallback){
+  document.getElementById("user-input").textContent = `"${rawInput}"`;
+  document.getElementById("aligned-name").textContent = domain.name;
+  document.getElementById("aligned-cn").textContent = domain.chinese;
+  document.getElementById("aligned-path").textContent = domain.concept_path;
+  document.getElementById("aligned-desc").textContent = isFallback ? "（演示模式：未匹配 · 兜底跳转）" + domain.desc : domain.desc;
+  document.getElementById("modal").classList.add("show");
+  document.getElementById("modal-confirm").onclick = () => runDomainSearch(domain, rawInput);
+  document.getElementById("modal-cancel").onclick = () => { document.getElementById("modal").classList.remove("show"); input.focus(); };
+}
+
 const PHASES = [
   { line: "&gt; ScholarTrace agent v0.1 started", delay: 100 },
-  { line: "&gt; query: <span class='text-amber-300' id='qlog'></span>", delay: 80 },
-  { line: "", delay: 200 },
-  { line: "<span class='text-amber-400'>[Stage 1]</span> Concept alignment ...", delay: 100 },
-  { line: "  <span class='text-emerald-400'>✓</span> Embedded query (1536-dim)", delay: 250 },
-  { line: "  <span class='text-emerald-400'>✓</span> OpenAlex concept matched: <span class='text-amber-300' id='clog'></span>", delay: 250 },
-  { line: "", delay: 200 },
-  { line: "<span class='text-amber-400'>[Stage 2]</span> RAG retrieval ...", delay: 100 },
-  { line: "  <span class='text-emerald-400'>✓</span> Qdrant ANN search · 100 candidates", delay: 300 },
-  { line: "  <span class='text-emerald-400'>✓</span> Recall@100 estimated: <span class='text-emerald-300'>0.93</span>", delay: 300 },
-  { line: "", delay: 200 },
-  { line: "<span class='text-amber-400'>[Stage 3]</span> Hard-rule ranking ...", delay: 100 },
-  { line: "  <span class='text-emerald-400'>✓</span> Fetched metrics from OpenAlex (h-index, citations, recent-3y)", delay: 300 },
-  { line: "  <span class='text-emerald-400'>✓</span> Applied default weights (40% h-index / 30% citations / 30% recent)", delay: 300 },
-  { line: "", delay: 200 },
-  { line: "→ Rendering Top-K list <span class='blink'></span>", delay: 400 },
+  { line: "&gt; query: <span class='high' id='qlog'></span>", delay: 80 },
+  { line: "", delay: 180 },
+  { line: "<span class='stage-name'>[Stage 1]</span> Concept alignment ...", delay: 100 },
+  { line: "  <span class='ok'>✓</span> Embedded query (1536-dim)", delay: 220 },
+  { line: "  <span class='ok'>✓</span> OpenAlex concept matched: <span class='high' id='clog'></span>", delay: 250 },
+  { line: "", delay: 180 },
+  { line: "<span class='stage-name'>[Stage 2]</span> RAG retrieval ...", delay: 100 },
+  { line: "  <span class='ok'>✓</span> Qdrant ANN search · 100 candidates", delay: 280 },
+  { line: "  <span class='ok'>✓</span> Recall@100 estimated: <span class='ok'>0.93</span>", delay: 280 },
+  { line: "", delay: 180 },
+  { line: "<span class='stage-name'>[Stage 3]</span> Hard-rule ranking ...", delay: 100 },
+  { line: "  <span class='ok'>✓</span> Fetched metrics from Semantic Scholar (h-index, citations, recent-3y)", delay: 280 },
+  { line: "  <span class='ok'>✓</span> Applied default weights (40% h-index / 30% citations / 30% recent)", delay: 280 },
+  { line: "", delay: 180 },
+  { line: "→ Rendering Top-K list <span class='blink'></span>", delay: 380 },
 ];
 
-async function runDomainSearch(domain, rawInput) {
-  document.getElementById("modal").classList.add("hidden");
-  document.getElementById("overlay").classList.remove("hidden");
+async function runDomainSearch(domain, rawInput){
+  document.getElementById("modal").classList.remove("show");
+  document.getElementById("overlay").classList.add("show");
   const log = document.getElementById("log");
   log.innerHTML = "";
-  for (const p of PHASES) {
+  for(const p of PHASES){
     const div = document.createElement("div");
-    div.className = "line-enter";
     div.innerHTML = p.line;
     log.appendChild(div);
-    if (div.querySelector("#qlog")) div.querySelector("#qlog").textContent = `"${rawInput}"`;
-    if (div.querySelector("#clog")) div.querySelector("#clog").textContent = `${domain.name} (${domain.chinese})`;
+    if(div.querySelector("#qlog")) div.querySelector("#qlog").textContent = `"${rawInput}"`;
+    if(div.querySelector("#clog")) div.querySelector("#clog").textContent = `${domain.name} (${domain.chinese})`;
     log.scrollIntoView({ block: "end" });
     await new Promise(r => setTimeout(r, p.delay));
   }
@@ -268,44 +359,8 @@ async function runDomainSearch(domain, rawInput) {
   location.href = `list.html?id=${domain.id}`;
 }
 
-function search() {
-  const v = document.getElementById("q").value.trim();
-  if (!v) return;
-  if (mode === "person") {
-    alert("人名模式将在 v1.1 上线，本次黑客松仅演示领域模式。请切回 'Domain' 试试 'Learning to Rank'。");
-    return;
-  }
-  const d = resolveDomain(v);
-  if (!d) {
-    // 兜底：演示场景仍跳 L2R，但保留 raw input
-    const fallback = DOMAINS["learning-to-rank"];
-    showAlignModal(v, fallback, true);
-    return;
-  }
-  showAlignModal(v, d, false);
-}
-
-function showAlignModal(rawInput, domain, isFallback) {
-  document.getElementById("user-input").textContent = `"${rawInput}"`;
-  document.getElementById("aligned-name").textContent = domain.name;
-  document.getElementById("aligned-cn").textContent = domain.chinese;
-  document.getElementById("aligned-path").textContent = domain.concept_path;
-  document.getElementById("aligned-desc").textContent = isFallback ? "（演示模式：未匹配，兜底跳转）" + domain.desc : domain.desc;
-  document.getElementById("modal").classList.remove("hidden");
-  document.getElementById("modal-confirm").onclick = () => runDomainSearch(domain, rawInput);
-  document.getElementById("modal-cancel").onclick = () => {
-    document.getElementById("modal").classList.add("hidden");
-    document.getElementById("q").focus();
-  };
-}
-
-document.getElementById("go").addEventListener("click", search);
-document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
-document.querySelectorAll(".suggest").forEach(b => {
-  if (b.disabled) return;
-  b.addEventListener("click", () => { document.getElementById("q").value = b.dataset.q; search(); });
-});
+goBtn.addEventListener("click", search);
+input.addEventListener("keydown", e => { if(e.key === "Enter") search(); });
 </script>
-
 </body>
 </html>
