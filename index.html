@@ -133,6 +133,27 @@
   .not-yet-list .item .ar{color:var(--blue-hover);font-size:14px;}
   .not-yet-list .disabled{opacity:.5;cursor:not-allowed;background:rgba(120,72,40,.04);}
   .not-yet-list .disabled:hover{transform:none;border-color:var(--border);background:rgba(120,72,40,.04);}
+
+  /* === Live OpenAlex search === */
+  .live-btn{width:100%;padding:11px 0;background:linear-gradient(135deg,#7c5e4a,#5c4530);color:#fff;border:0;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:14px;transition:box-shadow .2s;}
+  .live-btn:hover{box-shadow:0 4px 12px rgba(92,69,48,.45);}
+  .live-result{max-height:400px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#d8c4b4 transparent;}
+  .live-result::-webkit-scrollbar{width:5px;}
+  .live-result::-webkit-scrollbar-thumb{background:#d8c4b4;border-radius:3px;}
+  .live-loading{padding:24px 0;text-align:center;color:var(--gray);font-size:13px;}
+  .live-loading .step{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue-hover);margin-top:8px;animation:fadeIn .4s ease;}
+  .live-success{font-size:12px;color:#0e9f6e;margin-bottom:6px;}
+  .live-meta{font-size:11px;color:var(--gray-soft);margin-bottom:10px;font-family:'JetBrains Mono',monospace;}
+  .live-err{padding:14px;background:rgba(217,45,32,.07);border:1px solid rgba(217,45,32,.25);border-radius:8px;color:#d92d20;font-size:12.5px;}
+  .live-list{display:flex;flex-direction:column;gap:6px;}
+  .live-item{display:flex;align-items:center;gap:10px;padding:9px 11px;background:rgba(255,253,251,.7);border:1px solid var(--border);border-radius:10px;font-size:12px;}
+  .live-item .rk{font-family:'JetBrains Mono',monospace;color:var(--gray-soft);font-size:11px;font-weight:600;min-width:24px;}
+  .live-item .info{flex:1;min-width:0;}
+  .live-item .nm{font-weight:600;color:var(--ink);font-size:13px;}
+  .live-item .nm.us{color:var(--blue-hover);}
+  .live-item .iss{font-size:10.5px;color:var(--gray);}
+  .live-item .stats{display:flex;flex-direction:column;align-items:flex-end;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--gray);}
+  .live-item .stats .cit{color:var(--blue-hover);font-weight:600;}
   .modal-btns{display:flex;gap:10px;}
   .btn{flex:1;padding:11px 0;border:0;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .14s;font-family:inherit;}
   .btn-ghost{background:#f7eee5;color:var(--gray);}
@@ -256,26 +277,21 @@
 
   <!-- 未收录领域 Modal -->
   <div class="modal-backdrop" id="not-yet">
-    <div class="modal">
+    <div class="modal" style="max-width:480px;">
       <p class="stage warn">[v1.1] DOMAIN NOT YET INDEXED</p>
       <p class="uin">你输入了 <span class="q" id="not-yet-input"></span></p>
       <div class="not-yet-box">
         <h3>⏳ 该领域尚未收录</h3>
-        <p>MVP v1.0 聚焦计算机科学 · AI 领域。其它领域将在 v1.1 拓展至生物医学、物理、化学。当前你可以试试已收录的领域：</p>
+        <p>MVP v1.0 静态 cache 只覆盖 Learning to Rank。但你可以让我们 <b>实时通过 OpenAlex 现搜</b> 一下：</p>
       </div>
+      <button class="live-btn" id="live-search-btn">🛰 通过 OpenAlex 实时查询 →</button>
+      <div class="live-result" id="live-result"></div>
+      <p style="font-size:11px;color:var(--gray-soft);text-align:center;margin:8px 0 14px;">或选已收录领域：</p>
       <div class="not-yet-list">
         <a class="item" href="list.html?id=learning-to-rank">
           <span><span class="n">Learning to Rank</span> · <span class="c">学习排序 · 12 学者</span></span>
           <span class="ar">→</span>
         </a>
-        <div class="item disabled">
-          <span><span class="n" style="color:var(--gray-soft)">Diffusion Models</span> · <span class="c">v1.1</span></span>
-          <span class="c">即将上线</span>
-        </div>
-        <div class="item disabled">
-          <span><span class="n" style="color:var(--gray-soft)">RLHF</span> · <span class="c">v1.1</span></span>
-          <span class="c">即将上线</span>
-        </div>
       </div>
       <div class="modal-btns">
         <button class="btn btn-ghost" id="not-yet-close">换一个搜索词</button>
@@ -367,7 +383,10 @@ function showAlignModal(rawInput, domain){
 
 function showNotYet(rawInput){
   document.getElementById("not-yet-input").textContent = `"${rawInput}"`;
+  document.getElementById("live-result").innerHTML = "";  // 清空上次结果
   document.getElementById("not-yet").classList.add("show");
+  // bind live search button (rebind every time to capture rawInput)
+  document.getElementById("live-search-btn").onclick = () => liveSearch(rawInput);
 }
 document.getElementById("not-yet-close").addEventListener("click", () => {
   document.getElementById("not-yet").classList.remove("show");
@@ -375,6 +394,73 @@ document.getElementById("not-yet-close").addEventListener("click", () => {
   box.classList.remove("has-text");
   input.focus();
 });
+
+async function liveSearch(query){
+  const r = document.getElementById("live-result");
+  const btn = document.getElementById("live-search-btn");
+  btn.disabled = true; btn.textContent = "查询中...";
+  r.innerHTML = `<div class="live-loading">
+    <p>⏳ 正在通过 OpenAlex 实时检索...</p>
+    <p class="step" id="live-step">→ Step 1/2: 寻找概念匹配</p>
+  </div>`;
+
+  try {
+    // Step 1: concept matching
+    const cRes = await fetch(`https://api.openalex.org/concepts?search=${encodeURIComponent(query)}&per_page=1&mailto=scholartrace@demo.dev`);
+    if(!cRes.ok) throw new Error("OpenAlex concept API 错误 " + cRes.status);
+    const cData = await cRes.json();
+    if(!cData.results || !cData.results.length) throw new Error("未匹配到 OpenAlex 概念");
+    const concept = cData.results[0];
+    const cid = concept.id.split("/").pop();
+
+    document.getElementById("live-step").textContent = `✓ 匹配概念: ${concept.display_name} (${concept.works_count.toLocaleString()} works) · → Step 2/2: 聚合 top authors`;
+
+    // Step 2: top works → aggregate authors
+    const wRes = await fetch(`https://api.openalex.org/works?filter=concepts.id:${cid}&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`);
+    if(!wRes.ok) throw new Error("OpenAlex works API 错误 " + wRes.status);
+    const wData = await wRes.json();
+
+    const agg = {};
+    wData.results.forEach(p => {
+      (p.authorships || []).slice(0, 5).forEach(a => {
+        const id = a.author.id;
+        if(!agg[id]) agg[id] = { id, name: a.author.display_name, papers: 0, cit: 0, inst: "" };
+        agg[id].papers++;
+        agg[id].cit += (p.cited_by_count || 0);
+        if(a.institutions && a.institutions.length) agg[id].inst = a.institutions[0].display_name;
+      });
+    });
+    const top = Object.values(agg).sort((a, b) => b.cit - a.cit).slice(0, 10);
+
+    // 渲染
+    const itemsHtml = top.map((a, i) => {
+      const truncInst = (a.inst || "—").length > 35 ? a.inst.slice(0, 33) + "…" : (a.inst || "—");
+      return `
+        <div class="live-item">
+          <span class="rk">#${i+1}</span>
+          <div class="info">
+            <p class="nm">${a.name}</p>
+            <p class="iss">${truncInst}</p>
+          </div>
+          <div class="stats">
+            <span>${a.papers} top papers</span>
+            <span class="cit">${a.cit.toLocaleString()} cit</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    r.innerHTML = `
+      <p class="live-success">✓ OpenAlex 实时查询完成 · 概念: <b>${concept.display_name}</b></p>
+      <p class="live-meta">从 ${wData.results.length} 篇 top works 聚合 → top 10 作者 (按 cited 排序)</p>
+      <div class="live-list">${itemsHtml}</div>
+    `;
+    btn.disabled = false; btn.textContent = "🛰 重新查询 OpenAlex";
+  } catch(e) {
+    r.innerHTML = `<div class="live-err">❌ 查询失败：${e.message}<br><span style="font-size:10.5px;opacity:.7;">CORS / 网络问题可能导致黑客松现场不稳定。可改用已收录的 Learning to Rank 演示。</span></div>`;
+    btn.disabled = false; btn.textContent = "🛰 重试";
+  }
+}
 
 const PHASES = [
   { line: "&gt; ScholarTrace agent v0.1 started", delay: 100 },

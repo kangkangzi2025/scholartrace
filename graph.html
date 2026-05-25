@@ -472,10 +472,25 @@ function renderGraph(){
       _meta: e, _type: "coauthor"
     }));
 
+  // 二度合作边：center 的邻居之间互相的 coauthor 关系，构成多层结构
+  const usedCoauthorIds = new Set(coauthorVisEdges.map(e => e.id));
+  const secondDegreeCoauthorEdges = DATA.edges
+    .filter(e => e.type === "coauthor")
+    .filter(e => nodeIds.has(e.source) && nodeIds.has(e.target))
+    .filter(e => e.source !== centerId && e.target !== centerId)
+    .map((e, i) => ({
+      id: `c2-${i}`, from: e.source, to: e.target,
+      arrows: "", dashes: [6, 4],
+      color: { color: "#e3d4c4", opacity: 0.45 },
+      width: Math.max(0.8, Math.min(2.5, Math.log(e.weight + 1) * 0.4)),
+      smooth: { type: "continuous" },
+      _meta: e, _type: "coauthor"
+    }));
+
   let allEdges = [];
   if(activeEdgeFilter === "all" || activeEdgeFilter === "mentorship") allEdges = allEdges.concat(mentorshipVisEdges);
   if(activeEdgeFilter === "all" || activeEdgeFilter === "sibling")    allEdges = allEdges.concat(siblingVisEdges);
-  if(activeEdgeFilter === "all" || activeEdgeFilter === "coauthor")   allEdges = allEdges.concat(coauthorVisEdges);
+  if(activeEdgeFilter === "all" || activeEdgeFilter === "coauthor")   allEdges = allEdges.concat(coauthorVisEdges).concat(secondDegreeCoauthorEdges);
 
   const data = { nodes: new vis.DataSet(visNodes), edges: new vis.DataSet(allEdges) };
   if(network) network.destroy();
@@ -501,8 +516,9 @@ function renderGraph(){
       }
     }
   });
+  // 稳定后停止物理引擎——不再周期性扰动，避免节点闪动
   network.once("stabilizationIterationsDone", () => {
-    setInterval(() => { if(network) network.startSimulation(); setTimeout(() => network && network.stopSimulation(), 600); }, 4500);
+    network.setOptions({ physics: { enabled: false } });
   });
 
   network.on("click", p => { if(p.nodes.length) showNodeDetail(p.nodes[0]); });
