@@ -558,9 +558,16 @@ function renderGraph(){
     }
   });
 
-  // 稳定完成后：永久 disable physics → 节点静止不闪 → 淡入显示 → 启动二度 API 展开
+  // 稳定完成后：彻底停止物理 → 节点静止不闪 → 淡入显示 → 启动二度 API 展开
   network.once("stabilizationIterationsDone", () => {
-    network.setOptions({ physics: { enabled: false } });
+    network.stopSimulation();
+    network.setOptions({ physics: { enabled: false }, layout: { improvedLayout: false } });
+    // 把所有当前节点 fix 住，避免后续 add/redraw 触发任何位移
+    const ids = data.nodes.getIds();
+    const positions = network.getPositions(ids);
+    ids.forEach(id => {
+      data.nodes.update({ id, x: positions[id].x, y: positions[id].y, fixed: { x: true, y: true } });
+    });
     stabOverlay.classList.add("hidden");
     graphEl.classList.add("ready");
     setTimeout(() => expand2ndDegree(data), 400);
@@ -598,15 +605,26 @@ async function expand2ndDegree(data){
     try {
       const coauths = await fetchTopCoauthors(s.name);
       // 取 top 2，过滤掉已在图里的（避免与现有节点重复）
-      const existingIds = new Set(data.nodes.getIds().map(String));
       const picks = coauths.filter(c => !added.has(c.oaId) && !inGraphByName(c.name)).slice(0, 2);
-      // 拿父节点位置作为锚点
-      const positions = network.getPositions([s.id]);
+      // 朝外扇形 layout：拿父节点位置，计算父→中心的方向，二级节点沿外侧方向铺开
+      const positions = network.getPositions([s.id, centerId]);
       const sx = positions[s.id]?.x || 0;
       const sy = positions[s.id]?.y || 0;
+      const cx = positions[centerId]?.x || 0;
+      const cy = positions[centerId]?.y || 0;
+      let dx = sx - cx, dy = sy - cy;
+      const norm = Math.sqrt(dx*dx + dy*dy) || 1;
+      // 单位向量：父节点远离中心的方向
+      const ux = dx / norm, uy = dy / norm;
+      // 把所有二级邻居 fan-out
+      const fanSpread = 0.55;  // ±0.55 rad，约 ±32°
       picks.forEach((c, idx) => {
-        const angle = (idx + 0.5) * Math.PI / picks.length + (Math.random() - 0.5) * 0.4;
-        const r = 120 + Math.random() * 30;
+        const t = picks.length === 1 ? 0 : (idx / (picks.length - 1)) * 2 - 1; // -1..1
+        const a = t * fanSpread;
+        // 旋转 (ux,uy) by 角度 a
+        const rx = Math.cos(a) * ux - Math.sin(a) * uy;
+        const ry = Math.sin(a) * ux + Math.cos(a) * uy;
+        const r = 130 + idx * 8;  // 稍微错开半径避免完全对称
         const newId = `oa-${c.oaId}`;
         data.nodes.add({
           id: newId,
@@ -614,9 +632,9 @@ async function expand2ndDegree(data){
           title: `${c.name}\n@${c.inst || "?"}\n${c.papers} top papers · ${c.cit.toLocaleString()} cit (via OpenAlex)`,
           shape: "circle",
           size: 16,
-          x: sx + Math.cos(angle) * r,
-          y: sy + Math.sin(angle) * r,
-          fixed: false,
+          x: sx + rx * r,
+          y: sy + ry * r,
+          fixed: { x: true, y: true },  // 完全固定，禁止任何重排
           physics: false,
           font: { color: "#5a3d28", size: 11, face: "Inter, PingFang SC", bold: false },
           color: { background: "#fbe5d2", border: "#e8b890", highlight: { background: "#fbe5d2", border: "#c2410c" } },

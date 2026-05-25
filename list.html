@@ -232,24 +232,35 @@ if(isLive){
 async function loadLiveFromOpenAlex(query){
   document.getElementById("concept-path").textContent = "OPENALEX LIVE · 实时检索";
   document.getElementById("field-name").textContent = `${query} · 实时搜索中`;
-  document.getElementById("field-desc").textContent = `Cache miss · 通过 OpenAlex API 现场聚合 top authors...`;
+  document.getElementById("field-desc").textContent = `Cache miss · 通过 OpenAlex API 现场聚合 top authors（限定 AI/CS 子树）...`;
   document.getElementById("status-text").textContent = "OpenAlex 实时检索...";
 
+  // AI/CS 概念 ID（OpenAlex Concepts hardcoded）
+  // C154945302 = Artificial Intelligence (level 1)
+  // C41008148  = Computer Science (level 0)
+  const AI_CONCEPT = "C154945302";
+
   try {
-    // Step 1: concept matching
-    const cRes = await fetch(`https://api.openalex.org/concepts?search=${encodeURIComponent(query)}&per_page=1&mailto=scholartrace@demo.dev`);
-    if(!cRes.ok) throw new Error("concept API " + cRes.status);
-    const cData = await cRes.json();
-    if(!cData.results || !cData.results.length) throw new Error("OpenAlex 未匹配到对应概念");
-    const concept = cData.results[0];
-    const cid = concept.id.split("/").pop();
     document.getElementById("progress").style.width = "30%";
 
-    // Step 2: works → aggregate authors
-    const wRes = await fetch(`https://api.openalex.org/works?filter=concepts.id:${cid}&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`);
+    // 一步走：用 works fulltext search + AI 子树 filter，避开 /concepts 误匹配（如 diffusion → 物理）
+    let wRes = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(query)}&filter=concepts.id:${AI_CONCEPT}&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`);
     if(!wRes.ok) throw new Error("works API " + wRes.status);
-    const wData = await wRes.json();
+    let wData = await wRes.json();
+
+    // 如果 AI filter 拿到太少（< 8 篇），fallback 到无 filter 全库搜
+    if(!wData.results || wData.results.length < 8){
+      const wRes2 = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(query)}&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`);
+      if(wRes2.ok){
+        const wData2 = await wRes2.json();
+        if(wData2.results && wData2.results.length > wData.results.length) wData = wData2;
+      }
+    }
+    if(!wData.results || !wData.results.length) throw new Error("OpenAlex 在该领域未找到论文");
     document.getElementById("progress").style.width = "55%";
+
+    // 构造 "fake concept" 给 UI 用
+    const concept = { display_name: query, works_count: wData.meta?.count || wData.results.length };
 
     const agg = {};
     const palette = ["amber","rose","emerald","sky","violet","stone","blue","fuchsia","purple","indigo","slate"];
