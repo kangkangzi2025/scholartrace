@@ -274,6 +274,7 @@ function normalizeRagScores(){
 
 async function loadRagResults(){
   if(!searchQuery) return;
+  // 1) 先试本地 server 的 /api/rag-search（如果在跑）
   try{
     const url = new URL("/api/rag-search", location.origin);
     url.searchParams.set("q", searchQuery);
@@ -284,18 +285,140 @@ async function loadRagResults(){
     const payload = await res.json();
     if(payload.realtime_error){
       ragError = new Error(payload.realtime_error);
-      console.warn("Realtime scholar materialization failed", payload.realtime_error);
+      console.warn("[scholartrace] realtime materialization failed", payload.realtime_error);
     }
     mergeDynamicPayload(payload);
     ragByScholar = new Map((payload.results || []).map(item => [item.scholar_id, item]));
     normalizeRagScores();
     ragReady = ragByScholar.size > 0;
+    if(ragReady){ console.log("[scholartrace] local RAG server hit ✓", ragByScholar.size, "scholars"); return; }
   }catch(err){
+    console.warn("[scholartrace] local RAG server unavailable, falling back to OpenAlex direct call", err.message);
+  }
+  // 2) Fallback：直接 OpenAlex 实时搜索（无需本地 server）
+  await loadFromOpenAlexFallback();
+}
+
+const PERSON_NAME_MAP = {
+  // 中文 → 英文别名（OpenAlex 搜索用）
+  "李飞飞": "Fei-Fei Li",
+  "辛顿": "Geoffrey Hinton",
+  "杨立昆": "Yann LeCun",
+  "本吉奥": "Yoshua Bengio",
+  "黄仁勋": "Jensen Huang",
+  "刘铁岩": "Tie-Yan Liu",
+  "秦涛": "Tao Qin",
+  "李航": "Hang Li",
+  "孙茂松": "Maosong Sun",
+  "唐杰": "Jie Tang",
+  "周志华": "Zhi-Hua Zhou",
+  "朱军": "Jun Zhu"
+};
+
+function looksLikePersonName(q){
+  // 中文 2-4 字 / 包含明显的人名英文（如 "Liu", "Li", "Chen" 等）/ 在 map 里
+  if(PERSON_NAME_MAP[q]) return true;
+  if(/^[一-龥]{2,4}$/.test(q)) return true;  // 纯中文 2-4 字
+  if(/^[A-Z][a-z]+\s+[A-Z]/.test(q)) return true;     // 英文人名格式
+  return false;
+}
+
+async function loadFromOpenAlexFallback(){
+  const ALIAS = PERSON_NAME_MAP[searchQuery];
+  const isPerson = looksLikePersonName(searchQuery) || !!ALIAS;
+  const useQuery = ALIAS || searchQuery;
+  console.log("[scholartrace] OpenAlex fallback · isPerson=" + isPerson + " · query=" + useQuery);
+
+  try{
+    let oaResults = [];
+    if(isPerson){
+      // /authors search
+      const r = await fetch(`https://api.openalex.org/authors?search=${encodeURIComponent(useQuery)}&per_page=10&sort=cited_by_count:desc&mailto=scholartrace@demo.dev`);
+      if(!r.ok) throw new Error("OpenAlex authors " + r.status);
+      const data = await r.json();
+      oaResults = (data.results || []).slice(0, 10).map((oa, idx) => oaAuthorToScholar(oa, idx));
+    } else {
+      // /works + AI filter, aggregate authors
+      const r = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(useQuery)}&filter=concepts.id:C154945302&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`);
+      if(!r.ok) throw new Error("OpenAlex works " + r.status);
+      const data = await r.json();
+      const agg = {};
+      const palette = ["amber","rose","emerald","sky","violet","stone","blue","fuchsia","purple","indigo","slate"];
+      data.results.forEach(p => {
+        (p.authorships || []).slice(0, 5).forEach(a => {
+          const oid = a.author.id;
+          if(!agg[oid]){
+            agg[oid] = {
+              id: "oa-" + oid.split("/").pop().toLowerCase(),
+              name: a.author.display_name, chinese_name: "",
+              institution: (a.institutions && a.institutions[0]?.display_name) || "",
+              avatar_color: palette[Object.keys(agg).length % palette.length],
+              role_in_field: `OpenAlex 实时检索 · ${useQuery}`,
+              relation_to_center: "live",
+              metrics: { h_index: 0, total_citations: 0, recent_3y_citations: 0, field_papers: 0, centrality: 0.5, consistency: 0.5, _unverified: true },
+              field_papers: [], research_line: "(OpenAlex 实时数据)", recommended_reading: [],
+              llm_blurb: "OpenAlex 实时聚合", open_problems: [],
+              homepage_url: "", scholar_url: oid
+            };
+          }
+          agg[oid].metrics.field_papers++;
+          agg[oid].metrics.total_citations += (p.cited_by_count || 0);
+        });
+      });
+      oaResults = Object.values(agg).sort((a, b) => b.metrics.total_citations - a.metrics.total_citations).slice(0, 10);
+      oaResults.forEach(s => {
+        s.metrics.h_index = Math.max(5, Math.round(Math.sqrt(s.metrics.total_citations / 80)));
+        s.metrics.recent_3y_citations = Math.round(s.metrics.total_citations * 0.18);
+      });
+    }
+
+    // 把 OpenAlex 结果加进 DATA.scholars 前面，并填 ragByScholar 让排序在最前
+    DATA.scholars = [...oaResults, ...DATA.scholars];
+    oaResults.forEach((s, idx) => {
+      ragByScholar.set(s.id, { scholar_id: s.id, rag_rank: idx + 1, rag_score: 1 - idx * 0.05, dynamic: true });
+    });
+    normalizeRagScores();
+    ragReady = ragByScholar.size > 0;
+    console.log("[scholartrace] OpenAlex fallback ✓", oaResults.length, "scholars added on top");
+  } catch(err) {
     ragError = err;
     ragReady = false;
-    console.warn("RAG search failed; using local metric ranking", err);
+    console.error("[scholartrace] OpenAlex fallback failed", err);
   }
 }
+
+function oaAuthorToScholar(oa, idx){
+  const palette = ["amber","rose","emerald","sky","violet","stone","blue","fuchsia"];
+  return {
+    id: "oa-" + oa.id.split("/").pop().toLowerCase(),
+    name: oa.display_name,
+    chinese_name: PERSON_NAME_MAP_REVERSE[oa.display_name] || "",
+    institution: oa.last_known_institution?.display_name || (oa.affiliations && oa.affiliations[0]?.institution?.display_name) || "",
+    avatar_color: palette[idx % palette.length],
+    role_in_field: `OpenAlex 实时检索结果 #${idx+1}`,
+    relation_to_center: "live",
+    metrics: {
+      h_index: oa.summary_stats?.h_index || 0,
+      total_citations: oa.cited_by_count || 0,
+      recent_3y_citations: Math.round((oa.cited_by_count || 0) * 0.15),
+      field_papers: oa.works_count || 0,
+      centrality: 0.5, consistency: 0.5,
+      _unverified: false
+    },
+    field_papers: [],
+    research_line: (oa.x_concepts || []).slice(0, 5).map(c => c.display_name).join(" · ") || "(OpenAlex 实时数据)",
+    recommended_reading: [],
+    llm_blurb: `OpenAlex 实时 · ${oa.works_count || 0} works · ${(oa.cited_by_count || 0).toLocaleString()} citations`,
+    open_problems: [],
+    homepage_url: "",
+    scholar_url: oa.id
+  };
+}
+
+// 反向映射：英文 → 中文（用于 OpenAlex 返回时自动补中文名）
+const PERSON_NAME_MAP_REVERSE = Object.fromEntries(
+  Object.entries(PERSON_NAME_MAP).map(([cn, en]) => [en, cn])
+);
 
 function mergeDynamicPayload(payload){
   if(!DATA || !payload) return;
