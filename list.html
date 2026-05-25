@@ -29,10 +29,27 @@
     background: #f59e0b; cursor: pointer; box-shadow: 0 0 8px rgba(245,158,11,0.5); border: 0;
   }
   .ai-glow { box-shadow: 0 0 0 1px rgba(245,158,11,0.6), 0 0 24px rgba(245,158,11,0.15); transition: all 0.4s; }
-  .rank-card { transition: transform 0.3s ease, opacity 0.3s ease; }
-  .ai-badge { animation: pop 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+  .rank-card { transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
+  .rank-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,158,11,0.08); }
+  .ai-badge { animation: pop 0.5s cubic-bezier(0.16, 1, 0.3, 1), glow-pulse 2.2s ease-in-out infinite 0.6s; }
   @keyframes pop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-  .progress-bar { background: linear-gradient(90deg, #f59e0b, #fb923c); transition: width 0.4s; }
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+    50% { box-shadow: 0 0 12px 2px rgba(245,158,11,0.35); }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card-enter { opacity: 0; animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .progress-bar { background: linear-gradient(90deg, #f59e0b, #fb923c); transition: width 0.4s; position: relative; overflow: hidden; }
+  .progress-bar::after {
+    content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer { 100% { left: 100%; } }
+  .metric-num { display: inline-block; min-width: 1ch; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -139,8 +156,20 @@ const params = new URLSearchParams(location.search);
 const fieldId = params.get("id") || "learning-to-rank";
 let K = 10;
 let DATA = null;
-let aiJudged = new Set();  // 已 LLM 评分的 scholar id
-let aiScores = {};  // {id: score}
+let aiJudged = new Set();
+let aiScores = {};
+let firstRender = true;  // 卡片入场 + count-up 只在首次渲染做
+
+function countUp(el, target, duration = 700, fmt = v => Math.round(v).toLocaleString()) {
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = fmt(target * eased);
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
 
 fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
   DATA = d;
@@ -193,7 +222,8 @@ function renderList() {
 
     const card = document.createElement("a");
     card.href = `graph.html?id=${s.id}&field=${fieldId}`;
-    card.className = `rank-card block p-5 rounded-xl bg-slate-900/50 border ${judged ? 'border-amber-700/40 ai-glow' : 'border-slate-800'} hover:border-amber-500 transition`;
+    card.className = `rank-card block p-5 rounded-xl bg-slate-900/50 border ${judged ? 'border-amber-700/40 ai-glow' : 'border-slate-800'} hover:border-amber-500 transition${firstRender ? ' card-enter' : ''}`;
+    if (firstRender) card.style.animationDelay = (idx * 0.06) + "s";
 
     const pctH = (s.metrics.h_index / maxH * 100).toFixed(0);
     const pctC = (s.metrics.total_citations / maxC * 100).toFixed(0);
@@ -210,6 +240,7 @@ function renderList() {
           <div class="flex items-baseline gap-2 mb-1">
             <h3 class="text-lg font-semibold text-slate-100">${s.chinese_name || s.name}</h3>
             ${s.chinese_name ? `<span class="text-sm text-slate-500">${s.name}</span>` : ""}
+            ${s.metrics?._unverified ? `<span title="Semantic Scholar 对此学者聚类不完整，数据可能低估" class="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/40 font-mono">⚠ SS 索引不全</span>` : ""}
             ${judged ? `<span class="ml-2 ai-badge inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono">✨ AI ${aiScore.toFixed(1)}/10</span>` : ""}
           </div>
           <p class="text-xs text-slate-400 mb-2">${s.institution}</p>
@@ -217,16 +248,16 @@ function renderList() {
 
           <div class="grid grid-cols-3 gap-3 text-xs">
             <div>
-              <div class="flex justify-between mb-0.5"><span class="text-slate-500">h-index</span><span class="text-amber-400 font-mono">${s.metrics.h_index}</span></div>
-              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500" style="width:${pctH}%"></div></div>
+              <div class="flex justify-between mb-0.5"><span class="text-slate-500">h-index</span><span class="text-amber-400 font-mono"><span class="cu-h metric-num" data-target="${s.metrics.h_index}">${firstRender ? 0 : s.metrics.h_index}</span></span></div>
+              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500 transition-all duration-500" style="width:${pctH}%"></div></div>
             </div>
             <div>
-              <div class="flex justify-between mb-0.5"><span class="text-slate-500">total cit</span><span class="text-amber-400 font-mono">${(s.metrics.total_citations/1000).toFixed(0)}k</span></div>
-              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500" style="width:${pctC}%"></div></div>
+              <div class="flex justify-between mb-0.5"><span class="text-slate-500">total cit</span><span class="text-amber-400 font-mono"><span class="cu-c metric-num" data-target="${s.metrics.total_citations}">${firstRender ? '0' : (s.metrics.total_citations/1000).toFixed(0)+'k'}</span></span></div>
+              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500 transition-all duration-500" style="width:${pctC}%"></div></div>
             </div>
             <div>
-              <div class="flex justify-between mb-0.5"><span class="text-slate-500">recent 3y</span><span class="text-amber-400 font-mono">${(s.metrics.recent_3y_citations/1000).toFixed(1)}k</span></div>
-              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500" style="width:${pctR}%"></div></div>
+              <div class="flex justify-between mb-0.5"><span class="text-slate-500">recent 3y</span><span class="text-amber-400 font-mono"><span class="cu-r metric-num" data-target="${s.metrics.recent_3y_citations}">${firstRender ? '0' : (s.metrics.recent_3y_citations/1000).toFixed(1)+'k'}</span></span></div>
+              <div class="h-1 rounded-full bg-slate-800 overflow-hidden"><div class="h-full bg-amber-500 transition-all duration-500" style="width:${pctR}%"></div></div>
             </div>
           </div>
         </div>
@@ -243,6 +274,16 @@ function renderList() {
 
   document.getElementById("meta-info").textContent =
     `RAG 召回 100 候选 → Top ${K} (${aiJudged.size}/${Math.min(K, DATA.scholars.length)} AI 评审)`;
+
+  // 首次渲染：数字 count-up 动画（拖滑块时不再触发）
+  if (firstRender) {
+    requestAnimationFrame(() => {
+      document.querySelectorAll(".cu-h").forEach(el => countUp(el, +el.dataset.target, 700, v => Math.round(v)));
+      document.querySelectorAll(".cu-c").forEach(el => countUp(el, +el.dataset.target, 900, v => (v/1000).toFixed(0) + "k"));
+      document.querySelectorAll(".cu-r").forEach(el => countUp(el, +el.dataset.target, 900, v => (v/1000).toFixed(1) + "k"));
+    });
+    firstRender = false;
+  }
 }
 
 // 权重滑块联动（不强制约束，但在底部显示 raw 和）

@@ -153,6 +153,19 @@ let DATA = null;
 let network = null;
 let activeEdgeFilter = "all";
 let aiJudged = new Set();
+let firstCenter = true;
+
+function countUp(el, target, duration = 700, fmt = v => Math.round(v).toLocaleString()) {
+  if (!el) return;
+  const start = performance.now();
+  function tick(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = fmt(target * eased);
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
 
 fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
   DATA = d;
@@ -216,9 +229,16 @@ function renderCenter() {
   document.getElementById("center-inst").textContent = s.institution;
   document.getElementById("center-role").textContent = s.role_in_field;
   if (s.metrics) {
-    document.getElementById("m-h").textContent = s.metrics.h_index;
-    document.getElementById("m-c").textContent = (s.metrics.total_citations / 1000).toFixed(0) + "k";
-    document.getElementById("m-r").textContent = (s.metrics.recent_3y_citations / 1000).toFixed(1) + "k";
+    if (firstCenter) {
+      countUp(document.getElementById("m-h"), s.metrics.h_index, 800);
+      countUp(document.getElementById("m-c"), s.metrics.total_citations, 1000, v => (v/1000).toFixed(0) + "k");
+      countUp(document.getElementById("m-r"), s.metrics.recent_3y_citations, 1000, v => (v/1000).toFixed(1) + "k");
+      firstCenter = false;
+    } else {
+      document.getElementById("m-h").textContent = s.metrics.h_index;
+      document.getElementById("m-c").textContent = (s.metrics.total_citations / 1000).toFixed(0) + "k";
+      document.getElementById("m-r").textContent = (s.metrics.recent_3y_citations / 1000).toFixed(1) + "k";
+    }
   } else {
     document.getElementById("m-h").textContent = "—";
     document.getElementById("m-c").textContent = "—";
@@ -344,10 +364,31 @@ function renderGraph() {
   network = new vis.Network(document.getElementById("graph"), data, {
     physics: {
       enabled: true,
-      barnesHut: { gravitationalConstant: -8000, springLength: 160, springConstant: 0.03, damping: 0.4 },
-      stabilization: { iterations: 260 }
+      barnesHut: { gravitationalConstant: -4500, springLength: 150, springConstant: 0.018, damping: 0.92, avoidOverlap: 0.3 },
+      stabilization: { iterations: 200, fit: true },
+      minVelocity: 0.01,
+      timestep: 0.28
     },
-    interaction: { hover: true, tooltipDelay: 200, zoomView: true }
+    interaction: { hover: true, tooltipDelay: 200, zoomView: true, hoverConnectedEdges: true },
+    nodes: {
+      chosen: {
+        node: function(values, id, selected, hovering) {
+          if (hovering) {
+            values.size = values.size * 1.25;
+            values.shadow = true;
+            values.shadowSize = 18;
+            values.shadowColor = "rgba(245,158,11,0.55)";
+          }
+        }
+      }
+    }
+  });
+  // 稳定后定期注入轻微扰动让节点持续漂浮（视觉"活的"）
+  network.once("stabilizationIterationsDone", () => {
+    setInterval(() => {
+      if (network) network.startSimulation();
+      setTimeout(() => network && network.stopSimulation(), 600);
+    }, 4500);
   });
 
   network.on("click", p => {

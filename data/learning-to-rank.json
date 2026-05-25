@@ -69,12 +69,14 @@
       "avatar_color": "amber",
       "role_in_field": "listwise approach 提出人 · 教科书作者 · LETOR benchmark 建立",
       "metrics": {
-        "h_index": 113,
-        "total_citations": 101387,
-        "recent_3y_citations": 12500,
+        "h_index": 92,
+        "total_citations": 52577,
+        "recent_3y_citations": 1923,
         "field_papers": 28,
         "centrality": 0.92,
-        "consistency": 0.88
+        "consistency": 0.88,
+        "semantic_scholar_id": "2110264337",
+        "paper_count_ss": 465
       },
       "field_papers": [
         {
@@ -155,12 +157,20 @@
       "avatar_color": "rose",
       "role_in_field": "早期 L2R 共同开拓 · 与 TYLiu 合著 listwise 关键论文",
       "metrics": {
-        "h_index": 88,
-        "total_citations": 45000,
-        "recent_3y_citations": 6800,
+        "h_index": 55,
+        "total_citations": 21473,
+        "recent_3y_citations": 90,
         "field_papers": 22,
         "centrality": 0.78,
-        "consistency": 0.65
+        "consistency": 0.65,
+        "semantic_scholar_id": "49404233",
+        "semantic_scholar_id_alt": [
+          "2145572104",
+          "2265994866"
+        ],
+        "paper_count_ss": 208,
+        "_unverified": true,
+        "_note": "SS has split Hang Li into 3 author IDs; numbers are aggregated. The canonical entry (49404233 'Bytedance Technology') contains some non-IR papers due to SS clustering errors; treat with caution."
       },
       "field_papers": [
         {
@@ -211,12 +221,15 @@
       "avatar_color": "purple",
       "role_in_field": "RankNet / LambdaRank / LambdaMART 作者 · L2R 真正的鼻祖之一",
       "metrics": {
-        "h_index": 68,
-        "total_citations": 38000,
-        "recent_3y_citations": 1500,
+        "h_index": 50,
+        "total_citations": 46643,
+        "recent_3y_citations": 0,
         "field_papers": 16,
         "centrality": 0.85,
-        "consistency": 0.42
+        "consistency": 0.42,
+        "semantic_scholar_id": "2676309",
+        "paper_count_ss": 106,
+        "_note": "Retired since ~2017; 0 recent citations is genuine."
       },
       "field_papers": [
         {
@@ -273,12 +286,14 @@
       "avatar_color": "blue",
       "role_in_field": "SVM-Rank 作者 · click model / counterfactual learning 派系开创者",
       "metrics": {
-        "h_index": 115,
-        "total_citations": 68000,
-        "recent_3y_citations": 8200,
+        "h_index": 75,
+        "total_citations": 60679,
+        "recent_3y_citations": 74,
         "field_papers": 24,
         "centrality": 0.88,
-        "consistency": 0.78
+        "consistency": 0.78,
+        "semantic_scholar_id": "1680188",
+        "paper_count_ss": 230
       },
       "field_papers": [
         {
@@ -329,12 +344,15 @@
       "avatar_color": "indigo",
       "role_in_field": "Yahoo L2R Challenge 组织者 · ERR (Expected Reciprocal Rank) 提出人",
       "metrics": {
-        "h_index": 56,
-        "total_citations": 28000,
-        "recent_3y_citations": 2800,
+        "h_index": 64,
+        "total_citations": 24465,
+        "recent_3y_citations": 0,
         "field_papers": 14,
         "centrality": 0.72,
-        "consistency": 0.55
+        "consistency": 0.55,
+        "semantic_scholar_id": "1730609",
+        "paper_count_ss": 140,
+        "_note": "In industry (Criteo/Google), few recent SS-indexed publications."
       },
       "field_papers": [
         {
@@ -385,12 +403,14 @@
       "avatar_color": "amber",
       "role_in_field": "structured learning to rank · query-level loss design",
       "metrics": {
-        "h_index": 72,
-        "total_citations": 22000,
-        "recent_3y_citations": 3200,
+        "h_index": 78,
+        "total_citations": 26773,
+        "recent_3y_citations": 879,
         "field_papers": 19,
         "centrality": 0.68,
-        "consistency": 0.72
+        "consistency": 0.72,
+        "semantic_scholar_id": "143826491",
+        "paper_count_ss": 293
       },
       "field_papers": [
         {
@@ -441,12 +461,15 @@
       "avatar_color": "slate",
       "role_in_field": "BM25 / Okapi 系列作者 · IR ranking 奠基人 (pre-L2R)",
       "metrics": {
-        "h_index": 78,
-        "total_citations": 72000,
-        "recent_3y_citations": 4500,
+        "h_index": 61,
+        "total_citations": 28571,
+        "recent_3y_citations": 0,
         "field_papers": 11,
         "centrality": 0.65,
-        "consistency": 0.38
+        "consistency": 0.38,
+        "semantic_scholar_id": "144430625",
+        "paper_count_ss": 208,
+        "_note": "Retired; latest SS-indexed paper ~2013."
       },
       "field_papers": [
         {
@@ -491,12 +514,16 @@
       "avatar_color": "emerald",
       "role_in_field": "AdaRank · RankBoost · L2R boosting 流派",
       "metrics": {
-        "h_index": 52,
-        "total_citations": 11500,
-        "recent_3y_citations": 1800,
+        "h_index": 17,
+        "total_citations": 3604,
+        "recent_3y_citations": 0,
         "field_papers": 17,
         "centrality": 0.55,
-        "consistency": 0.62
+        "consistency": 0.62,
+        "semantic_scholar_id": "2150635498",
+        "paper_count_ss": 37,
+        "_unverified": true,
+        "_note": "SS coverage incomplete for Jun Xu @ RUC — only 37 papers indexed and 0 recent; true h-index is likely ~50+. SS clustering loses many of his publications."
       },
       "field_papers": [
         {
@@ -535,12 +562,14 @@
       "avatar_color": "fuchsia",
       "role_in_field": "listwise loss 理论分析 · 一致性证明",
       "metrics": {
-        "h_index": 42,
-        "total_citations": 8200,
-        "recent_3y_citations": 2400,
+        "h_index": 37,
+        "total_citations": 9415,
+        "recent_3y_citations": 162,
         "field_papers": 13,
         "centrality": 0.48,
-        "consistency": 0.74
+        "consistency": 0.74,
+        "semantic_scholar_id": "37510256",
+        "paper_count_ss": 157
       },
       "field_papers": [
         {
@@ -579,12 +608,16 @@
       "avatar_color": "sky",
       "role_in_field": "L2R 分布式实现 · 早期合作者",
       "metrics": {
-        "h_index": 38,
-        "total_citations": 15200,
-        "recent_3y_citations": 1100,
+        "h_index": 24,
+        "total_citations": 2727,
+        "recent_3y_citations": 0,
         "field_papers": 12,
         "centrality": 0.42,
-        "consistency": 0.32
+        "consistency": 0.32,
+        "semantic_scholar_id": "143701488",
+        "paper_count_ss": 50,
+        "_unverified": true,
+        "_note": "SS only indexes Bin Gao's MSRA-era papers (2014 era); leaves Meta-era publications unindexed. True numbers likely higher."
       },
       "field_papers": [
         {
@@ -623,12 +656,14 @@
       "avatar_color": "stone",
       "role_in_field": "Language Models for IR · IR ranking 学术派 (pre-L2R)",
       "metrics": {
-        "h_index": 92,
-        "total_citations": 48000,
-        "recent_3y_citations": 2800,
+        "h_index": 127,
+        "total_citations": 63274,
+        "recent_3y_citations": 41,
         "field_papers": 9,
         "centrality": 0.52,
-        "consistency": 0.35
+        "consistency": 0.35,
+        "semantic_scholar_id": "144456145",
+        "paper_count_ss": 723
       },
       "field_papers": [
         {
@@ -667,12 +702,14 @@
       "avatar_color": "violet",
       "role_in_field": "Joint relevance learning · ranking SVM-Map 优化",
       "metrics": {
-        "h_index": 76,
-        "total_citations": 28000,
-        "recent_3y_citations": 3100,
+        "h_index": 83,
+        "total_citations": 28070,
+        "recent_3y_citations": 285,
         "field_papers": 11,
         "centrality": 0.58,
-        "consistency": 0.45
+        "consistency": 0.45,
+        "semantic_scholar_id": "145203884",
+        "paper_count_ss": 452
       },
       "field_papers": [
         {
@@ -911,7 +948,16 @@
       "year_range": "1999-2003",
       "evidence": "Tie-Yan Liu 博士导师，清华 EE 1999-2003；DBLP 共著 18+ 篇 (2002-2008)。张旭东也是 Tao Qin 的博导。",
       "avatar_color": "rose",
-      "homepage_url": "https://web.ee.tsinghua.edu.cn/zhangxudong/zh_CN/index.htm"
+      "homepage_url": "https://web.ee.tsinghua.edu.cn/zhangxudong/zh_CN/index.htm",
+      "metrics": {
+        "h_index": 15,
+        "total_citations": 1203,
+        "recent_3y_citations": 0,
+        "paper_count_ss": 28,
+        "semantic_scholar_id": "2108094396",
+        "_unverified": true,
+        "_note": "SS coverage of THU EE faculty is sparse; only IR-era collab papers (with Tao Qin/TYLiu) indexed."
+      }
     },
     {
       "id": "rakesh-agrawal",
@@ -922,7 +968,15 @@
       "year_range": "2003-2009 (MSRA)",
       "evidence": "刘铁岩在多次公开访谈中点名 Rakesh Agrawal 的方法论：'针对一个重要的问题，从表面到核心全部做到位'，而非'为了发表论文而发论文'。",
       "avatar_color": "rose",
-      "homepage_url": "https://rakesh.agrawal-family.com/"
+      "homepage_url": "https://rakesh.agrawal-family.com/",
+      "metrics": {
+        "h_index": 83,
+        "total_citations": 94788,
+        "recent_3y_citations": 0,
+        "paper_count_ss": 257,
+        "semantic_scholar_id": "144947410",
+        "_note": "Retired; mostly historical citations of Apriori (~30k+ on the 1994 VLDB paper alone)."
+      }
     },
     {
       "id": "yiming-yang-cmu",
@@ -933,7 +987,14 @@
       "year_range": "2004",
       "evidence": "2004 年合作搭建当时世界上最大、近 30 万类的文本分类系统——刘铁岩自述这是他从多媒体转 IR 的敲门砖。",
       "avatar_color": "rose",
-      "homepage_url": "https://www.cs.cmu.edu/~yiming/"
+      "homepage_url": "https://www.cs.cmu.edu/~yiming/",
+      "metrics": {
+        "h_index": 72,
+        "total_citations": 57833,
+        "recent_3y_citations": 1176,
+        "paper_count_ss": 348,
+        "semantic_scholar_id": "35729970"
+      }
     }
   ],
   "papers": [
