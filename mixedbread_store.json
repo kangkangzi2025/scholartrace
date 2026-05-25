@@ -1,0 +1,109 @@
+{
+  "store_id": "fbe3efc4-5fb3-44f0-a4f2-ea84f882446a",
+  "store_name": "scholar-search-20260525-032914",
+  "created_at": "2026-05-25T03:29:39.944410+00:00",
+  "source_dir": "data/scholars",
+  "file_count": 10,
+  "files": [
+    {
+      "path": "data/scholars/christopher_burges.md",
+      "filename": "christopher_burges.md",
+      "file_id": "d1a57066-38ed-4dcd-a6d4-33f424f27104",
+      "metadata": {
+        "source": "christopher_burges.md",
+        "kind": "scholar_profile",
+        "stem": "christopher_burges"
+      }
+    },
+    {
+      "path": "data/scholars/hang_li.md",
+      "filename": "hang_li.md",
+      "file_id": "c773167d-fc24-4ece-979e-34359a77209c",
+      "metadata": {
+        "source": "hang_li.md",
+        "kind": "scholar_profile",
+        "stem": "hang_li"
+      }
+    },
+    {
+      "path": "data/scholars/hongyuan_zha.md",
+      "filename": "hongyuan_zha.md",
+      "file_id": "2e4c8978-9c86-42b9-a775-9b687b2af64d",
+      "metadata": {
+        "source": "hongyuan_zha.md",
+        "kind": "scholar_profile",
+        "stem": "hongyuan_zha"
+      }
+    },
+    {
+      "path": "data/scholars/jun_xu.md",
+      "filename": "jun_xu.md",
+      "file_id": "54578db8-5e58-407f-997c-2e14b45164e1",
+      "metadata": {
+        "source": "jun_xu.md",
+        "kind": "scholar_profile",
+        "stem": "jun_xu"
+      }
+    },
+    {
+      "path": "data/scholars/olivier_chapelle.md",
+      "filename": "olivier_chapelle.md",
+      "file_id": "2e690d4e-dc43-4a6c-ba08-67dad55932cb",
+      "metadata": {
+        "source": "olivier_chapelle.md",
+        "kind": "scholar_profile",
+        "stem": "olivier_chapelle"
+      }
+    },
+    {
+      "path": "data/scholars/stephen_robertson.md",
+      "filename": "stephen_robertson.md",
+      "file_id": "72b87803-1e6e-4586-8fe5-206521eb8c6c",
+      "metadata": {
+        "source": "stephen_robertson.md",
+        "kind": "scholar_profile",
+        "stem": "stephen_robertson"
+      }
+    },
+    {
+      "path": "data/scholars/tao_qin.md",
+      "filename": "tao_qin.md",
+      "file_id": "dbabae7d-8339-4a16-b409-430f2b661ac9",
+      "metadata": {
+        "source": "tao_qin.md",
+        "kind": "scholar_profile",
+        "stem": "tao_qin"
+      }
+    },
+    {
+      "path": "data/scholars/thorsten_joachims.md",
+      "filename": "thorsten_joachims.md",
+      "file_id": "361102dc-987d-45f4-8a59-79f071e420b9",
+      "metadata": {
+        "source": "thorsten_joachims.md",
+        "kind": "scholar_profile",
+        "stem": "thorsten_joachims"
+      }
+    },
+    {
+      "path": "data/scholars/tie_yan_liu.md",
+      "filename": "tie_yan_liu.md",
+      "file_id": "1a665d79-58b5-457f-b7a6-1b45f8bc2469",
+      "metadata": {
+        "source": "tie_yan_liu.md",
+        "kind": "scholar_profile",
+        "stem": "tie_yan_liu"
+      }
+    },
+    {
+      "path": "data/scholars/w_bruce_croft.md",
+      "filename": "w_bruce_croft.md",
+      "file_id": "304ed38c-a6b0-4714-b24e-0fc93aa7f4ce",
+      "metadata": {
+        "source": "w_bruce_croft.md",
+        "kind": "scholar_profile",
+        "stem": "w_bruce_croft"
+      }
+    }
+  ]
+}

@@ -296,8 +296,9 @@ function roleOf(id){
   return "coauthor";
 }
 
-fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
+fetch(`data/${fieldId}.json`).then(r => r.json()).then(async d => {
   DATA = d;
+  await loadDynamicData();
   document.getElementById("field-tag").textContent = d.name;
   computeSiblings();
   renderCenter();
@@ -308,6 +309,31 @@ fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
     startAIStream();
   }, 800);
 });
+
+async function loadDynamicData(){
+  try{
+    const res = await fetch("/api/dynamic-data");
+    if(!res.ok) return;
+    const payload = await res.json();
+    const scholarIds = new Set(DATA.scholars.map(s => s.id));
+    (payload.scholars || []).forEach(s => {
+      if(!s || !s.id || scholarIds.has(s.id)) return;
+      DATA.scholars.push(s);
+      scholarIds.add(s.id);
+    });
+
+    if(!Array.isArray(DATA.edges)) DATA.edges = [];
+    const edgeKeys = new Set(DATA.edges.map(e => `${e.source}|${e.target}|${e.type}`));
+    (payload.edges || []).forEach(e => {
+      const key = `${e.source}|${e.target}|${e.type}`;
+      if(!e.source || !e.target || edgeKeys.has(key)) return;
+      DATA.edges.push(e);
+      edgeKeys.add(key);
+    });
+  }catch(err){
+    console.warn("Dynamic scholar data unavailable", err);
+  }
+}
 
 function renderCenter(){
   const s = getScholar(centerId);
@@ -550,7 +576,7 @@ async function startAIStream(){
   (DATA.mentors || []).forEach(m => aiJudged.add(m.id));
   SIBLINGS.forEach(sid => aiJudged.add(sid));
   const coauthors = DATA.scholars.filter(s =>
-    s.relation_to_center === "coauthor" && !SIBLINGS.has(s.id) &&
+    s.id !== centerId && !SIBLINGS.has(s.id) &&
     DATA.edges.some(e => e.type === "coauthor" && ((e.source === centerId && e.target === s.id) || (e.target === centerId && e.source === s.id)))
   );
   coauthors.sort((a,b) => (b.metrics?.centrality||0) - (a.metrics?.centrality||0));

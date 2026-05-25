@@ -99,6 +99,7 @@
   @keyframes glow{from{box-shadow:0 0 0 0 rgba(217,119,87,0);}to{box-shadow:0 0 8px 1px rgba(217,119,87,.25);}}
   .rank-card .inst{font-size:11.5px;color:var(--gray);margin-bottom:4px;}
   .rank-card .role{font-size:12.5px;color:var(--ink);line-height:1.5;margin-bottom:10px;}
+  .rank-card .rag-hit{font-size:11.5px;color:var(--gray);line-height:1.55;margin:-2px 0 10px;padding-left:10px;border-left:2px solid rgba(217,119,87,.35);}
   .rank-card .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
   .rank-card .m{display:flex;flex-direction:column;gap:3px;}
   .rank-card .m .row{display:flex;justify-content:space-between;font-size:11px;}
@@ -186,8 +187,12 @@
 <script>
 const params = new URLSearchParams(location.search);
 const fieldId = params.get("id") || "learning-to-rank";
+const searchQuery = (params.get("q") || "").trim();
 let K = 10;
 let DATA = null;
+let ragByScholar = new Map();
+let ragReady = false;
+let ragError = null;
 let aiJudged = new Set();
 let aiScores = {};
 let firstRender = true;
@@ -211,17 +216,17 @@ const AVATAR_COLORS = {
 
 fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
   DATA = d;
-  document.getElementById("concept-path").textContent = d.concept_path;
-  document.getElementById("field-name").textContent = `${d.name} · ${d.chinese_name}`;
-  document.getElementById("field-desc").textContent = d.description;
-  document.getElementById("meta-info").textContent = `RAG 召回 100 候选 → Top ${K}`;
+  document.getElementById("concept-path").textContent = "RAG SCHOLAR SEARCH";
+  document.getElementById("field-name").textContent = "关键词检索结果";
+  document.getElementById("field-desc").textContent = searchQuery ? `关键词：${searchQuery}` : "输入关键词后按语义相关性排序学者";
+  document.getElementById("meta-info").textContent = searchQuery ? "RAG 语义检索中..." : `本地指标排序 → Top ${K}`;
 
-  setTimeout(() => {
+  loadRagResults().finally(() => setTimeout(() => {
     renderList();
     document.getElementById("progress").style.width = "55%";
-    document.getElementById("status-text").textContent = "骨架已渲染 · AI 重排开始";
+    document.getElementById("status-text").textContent = ragReady ? "RAG 排序完成 · AI 重排开始" : "本地排序完成 · AI 重排开始";
     startAIStream();
-  }, 300);
+  }, 300));
 });
 
 function getWeights(){
@@ -238,10 +243,97 @@ function influenceScore(s, w){
          w.w3 * Math.sqrt(Math.max(s.metrics.recent_3y_citations,0)) * 1.5;
 }
 
+function normalizedInfluenceScore(s, w){
+  const raw = influenceScore(s, w);
+  const all = DATA.scholars.map(x => influenceScore(x, w));
+  const min = Math.min(...all);
+  const max = Math.max(...all);
+  return max === min ? 0.5 : (raw - min) / (max - min);
+}
+
+function ragScoreFor(s){
+  const hit = ragByScholar.get(s.id);
+  if(!hit) return 0;
+  if(typeof hit.rag_score === "number") return hit.rag_score;
+  return Math.max(0, 1 - ((hit.rag_rank || 50) - 1) / 50);
+}
+
+function normalizeRagScores(){
+  const hits = Array.from(ragByScholar.values()).filter(h => typeof h.rag_score === "number");
+  if(!hits.length) return;
+  const min = Math.min(...hits.map(h => h.rag_score));
+  const max = Math.max(...hits.map(h => h.rag_score));
+  ragByScholar.forEach(hit => {
+    if(typeof hit.rag_score !== "number"){
+      hit.rag_score = Math.max(0, 1 - ((hit.rag_rank || 50) - 1) / 50);
+    }else{
+      hit.rag_score = max === min ? 1 : (hit.rag_score - min) / (max - min);
+    }
+  });
+}
+
+async function loadRagResults(){
+  if(!searchQuery) return;
+  try{
+    const url = new URL("/api/rag-search", location.origin);
+    url.searchParams.set("q", searchQuery);
+    url.searchParams.set("field", fieldId);
+    url.searchParams.set("top_k", "50");
+    const res = await fetch(url);
+    if(!res.ok) throw new Error(`RAG API ${res.status}`);
+    const payload = await res.json();
+    if(payload.realtime_error){
+      ragError = new Error(payload.realtime_error);
+      console.warn("Realtime scholar materialization failed", payload.realtime_error);
+    }
+    mergeDynamicPayload(payload);
+    ragByScholar = new Map((payload.results || []).map(item => [item.scholar_id, item]));
+    normalizeRagScores();
+    ragReady = ragByScholar.size > 0;
+  }catch(err){
+    ragError = err;
+    ragReady = false;
+    console.warn("RAG search failed; using local metric ranking", err);
+  }
+}
+
+function mergeDynamicPayload(payload){
+  if(!DATA || !payload) return;
+  const scholarIds = new Set(DATA.scholars.map(s => s.id));
+  (payload.scholars || []).forEach(s => {
+    if(!s || !s.id || scholarIds.has(s.id)) return;
+    DATA.scholars.push(s);
+    scholarIds.add(s.id);
+  });
+
+  if(!Array.isArray(DATA.edges)) DATA.edges = [];
+  const edgeKeys = new Set(DATA.edges.map(e => `${e.source}|${e.target}|${e.type}`));
+  (payload.edges || []).forEach(e => {
+    const key = `${e.source}|${e.target}|${e.type}`;
+    if(!e.source || !e.target || edgeKeys.has(key)) return;
+    DATA.edges.push(e);
+    edgeKeys.add(key);
+  });
+}
+
+function escapeHtml(value){
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function renderList(){
   const w = getWeights();
   const ranked = DATA.scholars
-    .map(s => ({...s, score: influenceScore(s, w)}))
+    .map(s => {
+      const influence = normalizedInfluenceScore(s, w);
+      const rag = ragScoreFor(s);
+      const score = ragReady ? rag * 75 + influence * 25 : influenceScore(s, w);
+      return {...s, score, rag_hit: ragByScholar.get(s.id)};
+    })
     .sort((a,b) => b.score - a.score)
     .slice(0, K);
   const list = document.getElementById("list");
@@ -280,6 +372,7 @@ function renderList(){
         </div>
         <p class="inst">${s.institution}</p>
         <p class="role">${s.role_in_field}</p>
+        ${s.rag_hit?.snippet ? `<p class="rag-hit">RAG 命中：${escapeHtml(s.rag_hit.snippet).slice(0, 170)}...</p>` : ""}
         <div class="metrics">
           <div class="m"><div class="row"><span class="k">h-index</span><span class="v"><span class="cu-h" data-target="${s.metrics.h_index}">${firstRender ? 0 : s.metrics.h_index}</span></span></div><div class="bar"><div style="width:${pctH}%"></div></div></div>
           <div class="m"><div class="row"><span class="k">total cit</span><span class="v"><span class="cu-c" data-target="${s.metrics.total_citations}">${firstRender ? '0' : (s.metrics.total_citations/1000).toFixed(0)+'k'}</span></span></div><div class="bar"><div style="width:${pctC}%"></div></div></div>
@@ -295,7 +388,9 @@ function renderList(){
     list.appendChild(a);
   });
 
-  document.getElementById("meta-info").textContent = `RAG 召回 100 候选 → Top ${K} (${aiJudged.size}/${Math.min(K,DATA.scholars.length)} AI 评审)`;
+  const modeText = ragReady ? `RAG 语义排序 → Top ${K}` : `本地指标排序 → Top ${K}`;
+  const suffix = ragError ? " · realtime fallback" : "";
+  document.getElementById("meta-info").textContent = `${modeText} (${aiJudged.size}/${Math.min(K,DATA.scholars.length)} AI 评审)${suffix}`;
 
   if(firstRender){
     requestAnimationFrame(() => {
@@ -335,7 +430,13 @@ document.querySelectorAll(".k-btn").forEach(b => {
 
 async function startAIStream(){
   const sorted = DATA.scholars
-    .map(s => ({...s, score: influenceScore(s, getWeights())}))
+    .map(s => {
+      const w = getWeights();
+      const influence = normalizedInfluenceScore(s, w);
+      const rag = ragScoreFor(s);
+      const score = ragReady ? rag * 75 + influence * 25 : influenceScore(s, w);
+      return {...s, score};
+    })
     .sort((a,b) => b.score - a.score);
   for(let i = 0; i < Math.min(K, sorted.length); i++){
     await new Promise(r => setTimeout(r, 400 + Math.random()*200));
