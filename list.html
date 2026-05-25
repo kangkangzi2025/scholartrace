@@ -334,11 +334,12 @@ async function loadFromOpenAlexFallback(){
       const palette = ["amber","rose","emerald","sky","violet","stone","blue","fuchsia","purple","indigo","slate"];
       data.results.forEach(p => {
         (p.authorships || []).slice(0, 5).forEach(a => {
-          const oid = a.author.id;
+          const oid = a?.author?.id;
+          if(!oid) return;  // OpenAlex 偶尔返回没 author.id 的项，跳过
           if(!agg[oid]){
             agg[oid] = {
               id: "oa-" + oid.split("/").pop().toLowerCase(),
-              name: a.author.display_name, chinese_name: "",
+              name: a.author.display_name || "Unknown", chinese_name: "",
               institution: (a.institutions && a.institutions[0]?.display_name) || "",
               avatar_color: palette[Object.keys(agg).length % palette.length],
               role_in_field: `OpenAlex 实时检索 · ${useQuery}`,
@@ -377,9 +378,10 @@ async function loadFromOpenAlexFallback(){
 
 function oaAuthorToScholar(oa, idx){
   const palette = ["amber","rose","emerald","sky","violet","stone","blue","fuchsia"];
+  const safeId = oa?.id ? oa.id.split("/").pop().toLowerCase() : `unknown-${idx}-${Date.now()}`;
   return {
-    id: "oa-" + oa.id.split("/").pop().toLowerCase(),
-    name: oa.display_name,
+    id: "oa-" + safeId,
+    name: oa?.display_name || "Unknown Author",
     chinese_name: PERSON_NAME_MAP_REVERSE[oa.display_name] || "",
     institution: oa.last_known_institution?.display_name || (oa.affiliations && oa.affiliations[0]?.institution?.display_name) || "",
     avatar_color: palette[idx % palette.length],
