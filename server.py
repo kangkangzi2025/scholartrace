@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parent
 DEFAULT_STORE_FILE = ROOT / "mixedbread_store.json"
 FIELD_DATA_FILE = ROOT / "data" / "learning-to-rank.json"
 DYNAMIC_CACHE_FILE = ROOT / ".scholartrace_dynamic.json"
-CACHE_VERSION = 6
+CACHE_VERSION = 8
 SEMANTIC_SCHOLAR_BASE = "https://api.semanticscholar.org/graph/v1"
 OPENALEX_BASE = "https://api.openalex.org"
 DYNAMIC_CACHE_LOCK = RLock()
@@ -326,10 +326,38 @@ def openalex_work_summary(work: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def openalex_author_details(author_id: str) -> dict[str, Any]:
+    openalex_id = str(author_id).replace("oa-", "", 1)
+    try:
+        author = openalex_json(
+            f"/authors/{openalex_id}",
+            {"select": "id,display_name,cited_by_count,works_count,summary_stats,last_known_institutions"},
+        )
+    except Exception:
+        return {}
+    institution = ""
+    last_known = author.get("last_known_institutions") or []
+    if last_known and isinstance(last_known[0], dict):
+        institution = last_known[0].get("display_name") or ""
+    return {
+        "authorId": openalex_author_id(author.get("id") or openalex_id),
+        "name": author.get("display_name") or "Unknown Author",
+        "url": author.get("id") or f"https://openalex.org/{openalex_id}",
+        "affiliations": [institution] if institution else [],
+        "hIndex": (author.get("summary_stats") or {}).get("h_index") or 0,
+        "citationCount": author.get("cited_by_count") or 0,
+        "paperCount": author.get("works_count") or 0,
+        "source": "OpenAlex",
+    }
+
+
 def looks_like_person_query(q: str) -> bool:
     tokens = [token for token in re.split(r"\s+", q.strip()) if token]
     if not tokens or len(tokens) > 4:
         return False
+    key = query_key(q)
+    if key in PERSON_QUERY_ALIASES or key in OPENALEX_PERSON_OVERRIDES:
+        return True
     normalized = {re.sub(r"[^a-z]", "", token.lower()) for token in tokens}
     topic_words = {
         "ai",
@@ -354,8 +382,10 @@ def looks_like_person_query(q: str) -> bool:
     if normalized & topic_words:
         return False
     if len(tokens) == 1:
-        return bool(re.fullmatch(r"[A-Za-z][A-Za-z'.-]+", tokens[0]))
-    return all(re.fullmatch(r"[A-Za-z][A-Za-z'.-]+", token) for token in tokens)
+        return False
+    if not all(re.fullmatch(r"[A-Za-z][A-Za-z'.-]+", token) for token in tokens):
+        return False
+    return any(token[:1].isupper() for token in tokens)
 
 
 def fetch_author_papers(author_id: str) -> list[dict[str, Any]]:
@@ -497,6 +527,140 @@ def add_coauthor_candidates(
     return candidates + coauthors[: max(0, limit - len(candidates))]
 
 
+def discover_paper_author_candidates(q: str, limit: int) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    fields = "paperId,title,abstract,venue,year,citationCount,authors"
+    try:
+        payload = semantic_scholar_json(
+            "/paper/search",
+            {"query": q, "limit": 20, "fields": fields},
+        )
+    except Exception:
+        return discover_openalex_paper_author_candidates(q, limit)
+    papers = payload.get("data") or []
+    buckets: dict[str, dict[str, Any]] = {}
+
+    for paper in papers:
+        summary = paper_summary(paper)
+        for author in paper.get("authors") or []:
+            author_id = author.get("authorId")
+            if not author_id:
+                continue
+            bucket = buckets.setdefault(
+                str(author_id),
+                {
+                    "author_id": str(author_id),
+                    "name": author.get("name") or "Unknown Author",
+                    "score": 0.0,
+                    "papers": [],
+                },
+            )
+            bucket["score"] += 1 + min(paper.get("citationCount") or 0, 5000) ** 0.5 / 50
+            bucket["papers"].append(summary)
+
+    static_ids = static_semantic_author_ids()
+    candidates = [
+        value
+        for value in buckets.values()
+        if value["author_id"] not in static_ids
+    ]
+    candidates.sort(key=lambda item: item["score"], reverse=True)
+    return candidates[:limit], [paper_summary(paper) for paper in papers]
+
+
+def discover_openalex_paper_author_candidates(q: str, limit: int) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    payload = openalex_json(
+        "/works",
+        {
+            "search": q,
+            "per-page": 25,
+            "sort": "cited_by_count:desc",
+            "select": "id,title,publication_year,cited_by_count,primary_location,authorships",
+        },
+    )
+    papers = [openalex_work_summary(work) for work in payload.get("results") or []]
+    buckets: dict[str, dict[str, Any]] = {}
+    for work, paper in zip(payload.get("results") or [], papers):
+        authorships = work.get("authorships") or []
+        for authorship in authorships[:8]:
+            author = authorship.get("author") or {}
+            raw_author_id = author.get("id")
+            if not raw_author_id:
+                continue
+            author_id = openalex_author_id(raw_author_id)
+            institutions = authorship.get("institutions") or []
+            institution = ""
+            if institutions and isinstance(institutions[0], dict):
+                institution = institutions[0].get("display_name") or ""
+            bucket = buckets.setdefault(
+                author_id,
+                {
+                    "author_id": author_id,
+                    "name": author.get("display_name") or "Unknown Author",
+                    "score": 0.0,
+                    "papers": [],
+                    "details": {
+                        "authorId": author_id,
+                        "name": author.get("display_name") or "Unknown Author",
+                        "url": raw_author_id,
+                        "affiliations": [institution] if institution else [],
+                        "source": "OpenAlex",
+                    },
+                    "role": f"OpenAlex 实时发现 · 与「{q}」相关的论文作者",
+                },
+            )
+            bucket["score"] += 1 + min(paper.get("citations") or 0, 5000) ** 0.5 / 50
+            bucket["papers"].append(paper)
+    candidates = sorted(buckets.values(), key=lambda item: item["score"], reverse=True)
+    return candidates[:limit], papers
+
+
+def merge_author_candidates(
+    primary: list[dict[str, Any]],
+    supplemental: list[dict[str, Any]],
+    limit: int,
+) -> list[dict[str, Any]]:
+    merged: dict[str, dict[str, Any]] = {}
+    for candidate in primary + supplemental:
+        author_id = str(candidate.get("author_id") or "")
+        if not author_id:
+            continue
+        existing = merged.get(author_id)
+        if not existing:
+            merged[author_id] = {
+                **candidate,
+                "papers": list(candidate.get("papers") or []),
+            }
+            continue
+        existing["score"] = max(float(existing.get("score") or 0), float(candidate.get("score") or 0))
+        existing_paper_ids = {paper.get("paperId") for paper in existing.get("papers") or [] if paper.get("paperId")}
+        for paper in candidate.get("papers") or []:
+            paper_id = paper.get("paperId")
+            if paper_id and paper_id in existing_paper_ids:
+                continue
+            existing.setdefault("papers", []).append(paper)
+            if paper_id:
+                existing_paper_ids.add(paper_id)
+        if not existing.get("details") and candidate.get("details"):
+            existing["details"] = candidate["details"]
+        if not existing.get("role") and candidate.get("role"):
+            existing["role"] = candidate["role"]
+    return sorted(merged.values(), key=lambda item: item.get("score", 0), reverse=True)[:limit]
+
+
+def merge_papers(*paper_groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    merged = []
+    seen = set()
+    for papers in paper_groups:
+        for paper in papers:
+            paper_id = paper.get("paperId")
+            key = paper_id or (paper.get("title"), paper.get("year"))
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(paper)
+    return merged
+
+
 def discover_author_search_candidates(q: str, limit: int) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     openalex_override = fetch_openalex_author_candidate(q)
     if openalex_override:
@@ -549,45 +713,20 @@ def discover_author_search_candidates(q: str, limit: int) -> tuple[list[dict[str
 
 
 def discover_author_candidates(q: str, limit: int) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    if looks_like_person_query(q):
-        return discover_author_search_candidates(q, limit)
+    candidates, papers = discover_paper_author_candidates(q, limit)
+    if not looks_like_person_query(q):
+        return candidates, papers
 
-    fields = "paperId,title,abstract,venue,year,citationCount,authors"
-    payload = semantic_scholar_json(
-        "/paper/search",
-        {"query": q, "limit": 20, "fields": fields},
-    )
-    papers = payload.get("data") or []
-    buckets: dict[str, dict[str, Any]] = {}
-
-    for paper in papers:
-        for author in paper.get("authors") or []:
-            author_id = author.get("authorId")
-            if not author_id:
-                continue
-            bucket = buckets.setdefault(
-                str(author_id),
-                {
-                    "author_id": str(author_id),
-                    "name": author.get("name") or "Unknown Author",
-                    "score": 0.0,
-                    "papers": [],
-                },
-            )
-            bucket["score"] += 1 + min(paper.get("citationCount") or 0, 5000) ** 0.5 / 50
-            bucket["papers"].append(paper_summary(paper))
-
-    static_ids = static_semantic_author_ids()
-    candidates = [
-        value
-        for value in buckets.values()
-        if value["author_id"] not in static_ids
-    ]
-    candidates.sort(key=lambda item: item["score"], reverse=True)
-    return candidates[:limit], papers
+    try:
+        author_candidates, author_papers = discover_author_search_candidates(q, limit)
+    except Exception:
+        return candidates, papers
+    return merge_author_candidates(author_candidates, candidates, limit), merge_papers(author_papers, papers)
 
 
 def fetch_author_details(author_id: str) -> dict[str, Any]:
+    if str(author_id).startswith("oa-"):
+        return openalex_author_details(str(author_id))
     fields = ",".join(
         [
             "authorId",
@@ -612,6 +751,11 @@ def color_for_id(value: str) -> str:
 def materialize_scholar(q: str, candidate: dict[str, Any]) -> dict[str, Any]:
     author_id = candidate["author_id"]
     details = candidate.get("details") or fetch_author_details(author_id)
+    if str(author_id).startswith("oa-") and not any(
+        details.get(key) for key in ("hIndex", "citationCount", "paperCount")
+    ):
+        fetched_details = fetch_author_details(author_id)
+        details = {**details, **{key: value for key, value in fetched_details.items() if value}}
     name = details.get("name") or candidate.get("name") or "Unknown Author"
     papers = sorted(
         candidate.get("papers") or [],
@@ -848,10 +992,30 @@ def rag_search(
         except Exception as exc:
             realtime_error = str(exc)
 
-    raw_items = store_search(client, store_identifier, q, top_k)
+    search_error = None
+    try:
+        raw_items = store_search(client, store_identifier, q, top_k)
+    except Exception as exc:
+        search_error = str(exc)
+        raw_items = []
     results = []
     seen = set()
     realtime_ids = {scholar["id"] for scholar in realtime_payload.get("scholars", [])}
+    for scholar in realtime_payload.get("scholars", []):
+        if scholar["id"] in seen:
+            continue
+        seen.add(scholar["id"])
+        results.append(
+            {
+                "scholar_id": scholar["id"],
+                "rag_rank": len(results) + 1,
+                "rag_score": max(0.05, 1 - len(results) * 0.05),
+                "source": scholar.get("_source"),
+                "snippet": scholar.get("research_line", "")[:360],
+                "dynamic": True,
+            }
+        )
+
     for rank, item in enumerate(raw_items, start=1):
         result = normalize_result(rank, item)
         if not result or result["scholar_id"] in seen:
@@ -861,21 +1025,6 @@ def rag_search(
         seen.add(result["scholar_id"])
         results.append(result)
 
-    for scholar in realtime_payload.get("scholars", []):
-        if scholar["id"] in seen:
-            continue
-        seen.add(scholar["id"])
-        results.append(
-            {
-                "scholar_id": scholar["id"],
-                "rag_rank": len(results) + 1,
-                "rag_score": 0.35,
-                "source": scholar.get("_source"),
-                "snippet": scholar.get("research_line", "")[:360],
-                "dynamic": True,
-            }
-        )
-
     return {
         "query": q,
         "field": field,
@@ -883,6 +1032,7 @@ def rag_search(
         "scholars": realtime_payload.get("scholars", []),
         "edges": realtime_payload.get("edges", []),
         "realtime_error": realtime_error,
+        "search_error": search_error,
     }
 
 

@@ -286,6 +286,9 @@ async function loadRagResults(){
     if(payload.realtime_error){
       ragError = new Error(payload.realtime_error);
       console.warn("[scholartrace] realtime materialization failed", payload.realtime_error);
+      if(!(payload.scholars || []).length){
+        throw ragError;
+      }
     }
     mergeDynamicPayload(payload);
     ragByScholar = new Map((payload.results || []).map(item => [item.scholar_id, item]));
