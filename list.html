@@ -216,15 +216,23 @@ const AVATAR_COLORS = {
 
 fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
   DATA = d;
-  document.getElementById("concept-path").textContent = "RAG SCHOLAR SEARCH";
-  document.getElementById("field-name").textContent = "关键词检索结果";
-  document.getElementById("field-desc").textContent = searchQuery ? `关键词：${searchQuery}` : "输入关键词后按语义相关性排序学者";
-  document.getElementById("meta-info").textContent = searchQuery ? "RAG 语义检索中..." : `本地指标排序 → Top ${K}`;
+  document.getElementById("concept-path").textContent = searchQuery ? "OPENALEX LIVE · 实时检索" : "RAG SCHOLAR SEARCH";
+  document.getElementById("field-name").textContent = searchQuery ? `${searchQuery} · 实时搜索` : "关键词检索结果";
+  document.getElementById("field-desc").textContent = searchQuery ? `🛰 正在通过 OpenAlex 实时检索「${searchQuery}」...` : "输入关键词后按语义相关性排序学者";
+  document.getElementById("meta-info").textContent = searchQuery ? "OpenAlex 实时聚合中..." : `本地指标排序 → Top ${K}`;
+  document.getElementById("status-text").textContent = searchQuery ? "OpenAlex 实时检索…" : "骨架渲染中";
 
   loadRagResults().finally(() => setTimeout(() => {
     renderList();
     document.getElementById("progress").style.width = "55%";
-    document.getElementById("status-text").textContent = ragReady ? "RAG 排序完成 · AI 重排开始" : "本地排序完成 · AI 重排开始";
+    if(searchQuery){
+      document.getElementById("field-desc").textContent = ragReady
+        ? `🛰 OpenAlex 实时聚合 · 「${searchQuery}」匹配的 top 学者`
+        : `⚠ OpenAlex 检索失败 · 显示本地缓存（${ragError?.message || '未知错误'}）`;
+      document.getElementById("status-text").textContent = ragReady ? "实时检索完成 · AI 重排" : "OpenAlex 失败 · 显示缓存";
+    } else {
+      document.getElementById("status-text").textContent = "骨架已渲染 · AI 重排开始";
+    }
     startAIStream();
   }, 300));
 });
@@ -274,28 +282,8 @@ function normalizeRagScores(){
 
 async function loadRagResults(){
   if(!searchQuery) return;
-  // 1) 先试本地 server 的 /api/rag-search（如果在跑）
-  try{
-    const url = new URL("/api/rag-search", location.origin);
-    url.searchParams.set("q", searchQuery);
-    url.searchParams.set("field", fieldId);
-    url.searchParams.set("top_k", "50");
-    const res = await fetch(url);
-    if(!res.ok) throw new Error(`RAG API ${res.status}`);
-    const payload = await res.json();
-    if(payload.realtime_error){
-      ragError = new Error(payload.realtime_error);
-      console.warn("[scholartrace] realtime materialization failed", payload.realtime_error);
-    }
-    mergeDynamicPayload(payload);
-    ragByScholar = new Map((payload.results || []).map(item => [item.scholar_id, item]));
-    normalizeRagScores();
-    ragReady = ragByScholar.size > 0;
-    if(ragReady){ console.log("[scholartrace] local RAG server hit ✓", ragByScholar.size, "scholars"); return; }
-  }catch(err){
-    console.warn("[scholartrace] local RAG server unavailable, falling back to OpenAlex direct call", err.message);
-  }
-  // 2) Fallback：直接 OpenAlex 实时搜索（无需本地 server）
+  console.log("[scholartrace] live search for:", searchQuery);
+  // 纯前端模式：直接走 OpenAlex 实时搜索，不依赖本地 server.py
   await loadFromOpenAlexFallback();
 }
 
