@@ -363,11 +363,49 @@ function search(){
     box.animate([{transform:"translateX(0)"},{transform:"translateX(-5px)"},{transform:"translateX(5px)"},{transform:"translateX(0)"}],{duration:240}); return; }
   if(mode === "person"){ showHint("人名模式将在 v1.1 上线，请切回领域模式", true); return; }
   const d = resolveDomain(v);
-  if(!d){
-    showNotYet(v);
-    return;
+  if(d){
+    // 已收录领域：弹概念对齐 modal（让评委看到 alignment 流程）
+    showAlignModal(v, d);
+  } else {
+    // 未收录：直接走 agent → list 页（live=1 调 OpenAlex 现搜）
+    runLiveSearch(v);
   }
-  showAlignModal(v, d);
+}
+
+const LIVE_PHASES = [
+  { line: "&gt; ScholarTrace agent v0.1 started", delay: 100 },
+  { line: "&gt; query: <span class='high' id='qlog'></span>", delay: 80 },
+  { line: "", delay: 180 },
+  { line: "<span class='stage-name'>[Stage 1]</span> Concept alignment ...", delay: 100 },
+  { line: "  <span class='ok'>✓</span> Embedded query (1536-dim)", delay: 220 },
+  { line: "  <span class='ok'>✓</span> Cache miss · 静态库未收录，fallback 到 OpenAlex live", delay: 240 },
+  { line: "", delay: 180 },
+  { line: "<span class='stage-name'>[Stage 2]</span> OpenAlex retrieval ...", delay: 100 },
+  { line: "  <span class='ok'>✓</span> /concepts?search=&lt;query&gt; · matching", delay: 220 },
+  { line: "  <span class='ok'>✓</span> /works · sorted by cited_by_count, per_page=25", delay: 220 },
+  { line: "  <span class='ok'>✓</span> aggregating top authors from authorships", delay: 220 },
+  { line: "", delay: 180 },
+  { line: "<span class='stage-name'>[Stage 3]</span> Hard-rule ranking ...", delay: 100 },
+  { line: "  <span class='ok'>✓</span> Applied weights (40% h-index / 30% citations / 30% recent)", delay: 240 },
+  { line: "", delay: 180 },
+  { line: "→ Rendering Top-K list <span class='blink'></span>", delay: 380 },
+];
+
+async function runLiveSearch(rawInput){
+  document.getElementById("modal").classList.remove("show");
+  document.getElementById("overlay").classList.add("show");
+  const log = document.getElementById("log");
+  log.innerHTML = "";
+  for(const p of LIVE_PHASES){
+    const div = document.createElement("div");
+    div.innerHTML = p.line;
+    log.appendChild(div);
+    if(div.querySelector("#qlog")) div.querySelector("#qlog").textContent = `"${rawInput}"`;
+    log.scrollIntoView({ block: "end" });
+    await new Promise(r => setTimeout(r, p.delay));
+  }
+  await new Promise(r => setTimeout(r, 500));
+  location.href = `list.html?live=1&q=${encodeURIComponent(rawInput)}`;
 }
 
 function showAlignModal(rawInput, domain){

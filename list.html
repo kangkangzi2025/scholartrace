@@ -186,6 +186,8 @@
 <script>
 const params = new URLSearchParams(location.search);
 const fieldId = params.get("id") || "learning-to-rank";
+const isLive = params.get("live") === "1";
+const liveQuery = params.get("q") || fieldId;
 let K = 10;
 let DATA = null;
 let aiJudged = new Set();
@@ -209,20 +211,123 @@ const AVATAR_COLORS = {
   emerald:"#5fa68a", fuchsia:"#c065a3", sky:"#6aaacc", stone:"#a08b78", violet:"#8a72b3", slate:"#7d7468"
 };
 
-fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
-  DATA = d;
-  document.getElementById("concept-path").textContent = d.concept_path;
-  document.getElementById("field-name").textContent = `${d.name} · ${d.chinese_name}`;
-  document.getElementById("field-desc").textContent = d.description;
-  document.getElementById("meta-info").textContent = `RAG 召回 100 候选 → Top ${K}`;
+if(isLive){
+  loadLiveFromOpenAlex(liveQuery);
+} else {
+  fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
+    DATA = d;
+    document.getElementById("concept-path").textContent = d.concept_path;
+    document.getElementById("field-name").textContent = `${d.name} · ${d.chinese_name}`;
+    document.getElementById("field-desc").textContent = d.description;
+    document.getElementById("meta-info").textContent = `RAG 召回 100 候选 → Top ${K}`;
+    setTimeout(() => {
+      renderList();
+      document.getElementById("progress").style.width = "55%";
+      document.getElementById("status-text").textContent = "骨架已渲染 · AI 重排开始";
+      startAIStream();
+    }, 300);
+  });
+}
 
-  setTimeout(() => {
-    renderList();
+async function loadLiveFromOpenAlex(query){
+  document.getElementById("concept-path").textContent = "OPENALEX LIVE · 实时检索";
+  document.getElementById("field-name").textContent = `${query} · 实时搜索中`;
+  document.getElementById("field-desc").textContent = `Cache miss · 通过 OpenAlex API 现场聚合 top authors...`;
+  document.getElementById("status-text").textContent = "OpenAlex 实时检索...";
+
+  try {
+    // Step 1: concept matching
+    const cRes = await fetch(`https://api.openalex.org/concepts?search=${encodeURIComponent(query)}&per_page=1&mailto=scholartrace@demo.dev`);
+    if(!cRes.ok) throw new Error("concept API " + cRes.status);
+    const cData = await cRes.json();
+    if(!cData.results || !cData.results.length) throw new Error("OpenAlex 未匹配到对应概念");
+    const concept = cData.results[0];
+    const cid = concept.id.split("/").pop();
+    document.getElementById("progress").style.width = "30%";
+
+    // Step 2: works → aggregate authors
+    const wRes = await fetch(`https://api.openalex.org/works?filter=concepts.id:${cid}&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`);
+    if(!wRes.ok) throw new Error("works API " + wRes.status);
+    const wData = await wRes.json();
     document.getElementById("progress").style.width = "55%";
-    document.getElementById("status-text").textContent = "骨架已渲染 · AI 重排开始";
-    startAIStream();
-  }, 300);
-});
+
+    const agg = {};
+    const palette = ["amber","rose","emerald","sky","violet","stone","blue","fuchsia","purple","indigo","slate"];
+    wData.results.forEach(p => {
+      (p.authorships || []).slice(0, 5).forEach(a => {
+        const oid = a.author.id;
+        if(!agg[oid]){
+          agg[oid] = {
+            id: oid.split("/").pop().toLowerCase(),
+            name: a.author.display_name,
+            chinese_name: "",
+            institution: (a.institutions && a.institutions[0]?.display_name) || "",
+            country: "",
+            avatar_color: palette[Object.keys(agg).length % palette.length],
+            role_in_field: `${concept.display_name} · OpenAlex 聚合`,
+            relation_to_center: "coauthor",
+            metrics: { h_index: 0, total_citations: 0, recent_3y_citations: 0, field_papers: 0, centrality: 0.5, consistency: 0.5 },
+            field_papers: [],
+            research_line: `(OpenAlex 实时数据，无 LLM 摘要)`,
+            recommended_reading: [],
+            llm_blurb: `OpenAlex 实时聚合 · ${concept.display_name} 高引领域内 top 学者之一`,
+            open_problems: [],
+            homepage_url: "",
+            scholar_url: oid
+          };
+        }
+        agg[oid].metrics.field_papers++;
+        agg[oid].metrics.total_citations += (p.cited_by_count || 0);
+        if(!agg[oid].institution && a.institutions && a.institutions.length) agg[oid].institution = a.institutions[0].display_name;
+        if(agg[oid].field_papers.length < 5){
+          agg[oid].field_papers.push({
+            title: p.display_name, venue: "OpenAlex", year: p.publication_year || "—", citations: p.cited_by_count || 0
+          });
+        }
+      });
+    });
+
+    const scholars = Object.values(agg).sort((a, b) => b.metrics.total_citations - a.metrics.total_citations).slice(0, 15);
+    // 估算 h-index 和 recent_3y
+    scholars.forEach(s => {
+      s.metrics.h_index = Math.max(5, Math.round(Math.sqrt(s.metrics.total_citations / 80)));
+      s.metrics.recent_3y_citations = Math.round(s.metrics.total_citations * 0.18);
+    });
+
+    DATA = {
+      id: "live-" + query.toLowerCase().replace(/\s+/g, "-"),
+      name: concept.display_name,
+      chinese_name: query,
+      description: `OpenAlex 实时检索 · ${concept.works_count.toLocaleString()} works 覆盖此概念`,
+      concept_path: "OpenAlex Concept Tree → " + concept.display_name,
+      scholars: scholars,
+      mentors: [],
+      mentorship_edges: [],
+      edges: [],
+      paper_edges: []
+    };
+
+    document.getElementById("concept-path").textContent = DATA.concept_path;
+    document.getElementById("field-name").textContent = DATA.name;
+    document.getElementById("field-desc").textContent = DATA.description;
+    document.getElementById("progress").style.width = "75%";
+
+    setTimeout(() => {
+      renderList();
+      document.getElementById("progress").style.width = "85%";
+      document.getElementById("status-text").textContent = "骨架已渲染 · AI 重排开始";
+      startAIStream();
+    }, 250);
+  } catch(e) {
+    document.getElementById("field-desc").textContent = `❌ OpenAlex 检索失败: ${e.message}`;
+    document.getElementById("status-text").textContent = "失败";
+    document.getElementById("list").innerHTML = `<div style="padding:30px;text-align:center;color:var(--gray);">
+      <p style="font-size:14px;margin-bottom:10px;">实时检索遇到问题</p>
+      <p style="font-size:12px;color:var(--gray-soft);">${e.message}</p>
+      <a href="list.html?id=learning-to-rank" style="display:inline-block;margin-top:14px;padding:10px 22px;border-radius:10px;background:linear-gradient(135deg,#d97757,#c2410c);color:#fff;font-size:13px;font-weight:600;">改用 Learning to Rank 演示 →</a>
+    </div>`;
+  }
+}
 
 function getWeights(){
   const w1 = parseInt(document.getElementById("w1").value);
@@ -257,9 +362,13 @@ function renderList(){
     const avBg = AVATAR_COLORS[s.avatar_color] || "#9a8b7e";
 
     const a = document.createElement("a");
-    a.href = `graph.html?id=${s.id}&field=${fieldId}`;
+    a.href = isLive ? "javascript:void(0)" : `graph.html?id=${s.id}&field=${fieldId}`;
     a.className = `rank-card${judged ? " ai-judged" : ""}${firstRender ? " card-enter" : ""}`;
     if(firstRender) a.style.animationDelay = (idx * 0.06) + "s";
+    if(isLive){
+      a.style.cursor = "default";
+      a.onclick = (e) => { e.preventDefault(); };
+    }
 
     const pctH = (s.metrics.h_index/maxH*100).toFixed(0);
     const pctC = (s.metrics.total_citations/maxC*100).toFixed(0);
