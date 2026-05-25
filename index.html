@@ -66,34 +66,12 @@
   .search-btn:hover{box-shadow:0 5px 14px rgba(194,65,12,.5);}
   .search-btn:active{transform:scale(.92);}
   .search-btn svg{fill:#fff;width:21px;height:21px;}
-  .search-actions{display:flex;justify-content:center;gap:10px;margin-top:24px;}
-  .chip{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--gray);cursor:pointer;padding:7px 16px;border-radius:18px;border:1px solid var(--border);background:rgba(255,253,251,.65);transition:all .16s;}
-  .chip:hover{border-color:rgba(217,119,87,.45);color:var(--ink);}
-  .chip.active{background:rgba(217,119,87,.12);border-color:rgba(217,119,87,.55);color:var(--blue-hover);font-weight:500;}
-  .chip .tick{width:7px;height:7px;border-radius:50%;background:var(--blue);opacity:0;transition:opacity .16s;}
-  .chip.active .tick{opacity:1;}
-  .suggests{display:flex;justify-content:center;gap:8px;margin-top:18px;flex-wrap:wrap;}
-  .suggest{font-size:12px;padding:5px 12px;border-radius:14px;border:1px dashed var(--border);background:rgba(255,253,251,.4);color:var(--gray);cursor:pointer;transition:all .15s;}
-  .suggest:hover{border-color:rgba(217,119,87,.5);border-style:solid;color:var(--blue-hover);background:rgba(255,253,251,.85);}
-  .suggest:disabled{opacity:.45;cursor:not-allowed;}
   .hint{height:22px;margin-top:14px;font-size:13px;color:var(--gray-soft);text-align:center;opacity:0;transition:opacity .22s;}
   .hint.show{opacity:1;}
   .hint.warn{color:#d93025;}
 
   section.fields, section.pipeline{max-width:1020px;margin:0 auto;padding:8px 24px 40px;}
   section h3.sec-title{font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gray-soft);margin-bottom:14px;}
-  .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
-  .field-card{background:rgba(255,253,251,.78);border:1px solid var(--border);border-radius:14px;padding:18px;text-decoration:none;color:inherit;box-shadow:var(--shadow-sm);transition:transform .18s,box-shadow .2s,border-color .2s;display:block;}
-  .field-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);border-color:rgba(217,119,87,.45);}
-  .field-card.disabled{opacity:.55;cursor:default;}
-  .field-card.disabled:hover{transform:none;box-shadow:var(--shadow-sm);border-color:var(--border);}
-  .field-card .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-  .field-card .name{font-size:15px;font-weight:650;color:var(--ink);letter-spacing:-.2px;}
-  .field-card .count{font-size:11px;padding:2px 8px;border-radius:8px;background:rgba(217,119,87,.13);color:var(--blue-hover);font-weight:600;}
-  .field-card .sub{font-size:12px;color:var(--gray);margin-bottom:8px;}
-  .field-card .desc{font-size:12.5px;color:var(--gray);line-height:1.6;margin-bottom:10px;}
-  .field-card .tags{display:flex;gap:6px;}
-  .field-card .tag{font-size:10.5px;padding:2px 8px;border-radius:8px;background:rgba(120,72,40,.06);color:var(--gray);font-family:'JetBrains Mono',monospace;}
 
   .pipeline-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
   .stage{background:rgba(255,253,251,.6);border:1px solid var(--border);border-radius:12px;padding:14px;}
@@ -105,61 +83,6 @@
   footer a{color:var(--gray-soft);text-decoration:none;}
   footer a:hover{color:var(--ink);text-decoration:underline;}
   footer .spacer{flex:1;}
-
-  /* === Modal: 概念对齐 === */
-  .modal-backdrop{position:fixed;inset:0;background:rgba(43,33,24,.30);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:50;display:none;align-items:center;justify-content:center;padding:24px;animation:fadeIn .2s ease both;}
-  .modal-backdrop.show{display:flex;}
-  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-  .modal{max-width:440px;width:100%;background:#fffdfb;border:1px solid var(--border);border-radius:20px;padding:26px;box-shadow:var(--shadow-lg);animation:modalIn .35s cubic-bezier(.16,1,.3,1) both;}
-  @keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.97);}to{opacity:1;transform:none;}}
-  .modal .stage{font-size:10px;color:var(--blue-hover);font-weight:700;letter-spacing:1.5px;font-family:'JetBrains Mono',monospace;margin-bottom:6px;background:none;border:none;padding:0;}
-  .modal .stage.warn{color:#b08200;}
-  .modal .uin{color:var(--gray);font-size:13px;margin-bottom:14px;}
-  .modal .uin .q{font-family:'JetBrains Mono',monospace;color:var(--blue-hover);background:rgba(217,119,87,.10);padding:1px 6px;border-radius:4px;}
-  .modal .prompt{color:var(--ink);font-size:14px;margin-bottom:14px;}
-  .aligned-box{background:rgba(217,119,87,.06);border:1px solid rgba(217,119,87,.25);border-radius:14px;padding:18px;margin-bottom:18px;}
-  .aligned-box .name{font-size:24px;font-weight:700;color:var(--blue-hover);letter-spacing:-.5px;line-height:1.1;}
-  .aligned-box .cn{font-size:14px;color:var(--gray);margin-top:3px;}
-  .aligned-box .path{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gray-soft);margin-top:10px;line-height:1.5;}
-  .aligned-box .d{font-size:12.5px;color:var(--gray);margin-top:8px;line-height:1.55;}
-  .not-yet-box{background:rgba(176,130,0,.06);border:1px solid rgba(176,130,0,.25);border-radius:14px;padding:18px;margin-bottom:18px;}
-  .not-yet-box h3{font-size:17px;font-weight:700;color:#b08200;margin-bottom:6px;}
-  .not-yet-box p{font-size:13px;color:var(--gray);line-height:1.6;}
-  .not-yet-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
-  .not-yet-list .item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--ink);background:rgba(255,253,251,.7);transition:all .15s;cursor:pointer;}
-  .not-yet-list .item:hover{border-color:rgba(217,119,87,.5);background:rgba(255,253,251,.95);transform:translateX(2px);}
-  .not-yet-list .item .n{font-size:13.5px;font-weight:600;}
-  .not-yet-list .item .c{font-size:11px;color:var(--gray);}
-  .not-yet-list .item .ar{color:var(--blue-hover);font-size:14px;}
-  .not-yet-list .disabled{opacity:.5;cursor:not-allowed;background:rgba(120,72,40,.04);}
-  .not-yet-list .disabled:hover{transform:none;border-color:var(--border);background:rgba(120,72,40,.04);}
-
-  /* === Live OpenAlex search === */
-  .live-btn{width:100%;padding:11px 0;background:linear-gradient(135deg,#7c5e4a,#5c4530);color:#fff;border:0;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:14px;transition:box-shadow .2s;}
-  .live-btn:hover{box-shadow:0 4px 12px rgba(92,69,48,.45);}
-  .live-result{max-height:400px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#d8c4b4 transparent;}
-  .live-result::-webkit-scrollbar{width:5px;}
-  .live-result::-webkit-scrollbar-thumb{background:#d8c4b4;border-radius:3px;}
-  .live-loading{padding:24px 0;text-align:center;color:var(--gray);font-size:13px;}
-  .live-loading .step{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue-hover);margin-top:8px;animation:fadeIn .4s ease;}
-  .live-success{font-size:12px;color:#0e9f6e;margin-bottom:6px;}
-  .live-meta{font-size:11px;color:var(--gray-soft);margin-bottom:10px;font-family:'JetBrains Mono',monospace;}
-  .live-err{padding:14px;background:rgba(217,45,32,.07);border:1px solid rgba(217,45,32,.25);border-radius:8px;color:#d92d20;font-size:12.5px;}
-  .live-list{display:flex;flex-direction:column;gap:6px;}
-  .live-item{display:flex;align-items:center;gap:10px;padding:9px 11px;background:rgba(255,253,251,.7);border:1px solid var(--border);border-radius:10px;font-size:12px;}
-  .live-item .rk{font-family:'JetBrains Mono',monospace;color:var(--gray-soft);font-size:11px;font-weight:600;min-width:24px;}
-  .live-item .info{flex:1;min-width:0;}
-  .live-item .nm{font-weight:600;color:var(--ink);font-size:13px;}
-  .live-item .nm.us{color:var(--blue-hover);}
-  .live-item .iss{font-size:10.5px;color:var(--gray);}
-  .live-item .stats{display:flex;flex-direction:column;align-items:flex-end;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--gray);}
-  .live-item .stats .cit{color:var(--blue-hover);font-weight:600;}
-  .modal-btns{display:flex;gap:10px;}
-  .btn{flex:1;padding:11px 0;border:0;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .14s;font-family:inherit;}
-  .btn-ghost{background:#f7eee5;color:var(--gray);}
-  .btn-ghost:hover{background:#f0e3d4;color:var(--ink);}
-  .btn-primary{background:linear-gradient(135deg,#d97757,#c2410c);color:#fff;box-shadow:0 3px 8px rgba(194,65,12,.30);}
-  .btn-primary:hover{box-shadow:0 5px 14px rgba(194,65,12,.40);}
 
   /* === Overlay: Agent Terminal === */
   .overlay{position:fixed;inset:0;background:rgba(43,33,24,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:60;display:none;justify-content:center;padding:24px;overflow-y:auto;}
@@ -195,56 +118,24 @@
       </svg>
       <div class="word"><b>ScholarTrace</b><span class="zh">学脉</span></div>
     </div>
-    <p class="tagline">输入一个领域，看清<b>那群人</b>是谁 · RAG 召回 + LLM-as-a-judge 重排 + 1.5 度可视化</p>
+    <p class="tagline">输入关键词，用 <b>RAG</b> 找到最相关的学者</p>
     <div class="search-wrap">
       <div class="search-box" id="searchBox">
         <svg class="lead-ico" width="20" height="20" viewBox="0 0 24 24"><path fill="#9a8b7e" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
-        <input id="q" type="text" autocomplete="off" placeholder="输入研究领域，例如 Learning to Rank / 学习排序 / L2R" autofocus aria-label="搜索">
+        <input id="q" type="text" autocomplete="off" placeholder="输入关键词，例如 BM25 / LambdaMART / click feedback" autofocus aria-label="搜索">
         <span class="clear" id="clearBtn" title="清除">&times;</span>
         <button class="search-btn" id="go" title="检索"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg></button>
       </div>
-      <div class="search-actions">
-        <span class="chip active" data-mode="domain"><span class="tick"></span>🎯 领域 Domain</span>
-        <span class="chip" data-mode="person"><span class="tick"></span>👤 学者 Person</span>
-      </div>
-      <div class="suggests">
-        <span>试试：</span>
-        <button class="suggest" data-q="Learning to Rank">Learning to Rank</button>
-        <button class="suggest" data-q="学习排序">学习排序</button>
-        <button class="suggest" data-q="L2R">L2R</button>
-        <button class="suggest" disabled>Diffusion Models（待录入）</button>
-      </div>
       <div class="hint" id="hint"></div>
-    </div>
-  </section>
-
-  <section class="fields">
-    <h3 class="sec-title">已收录领域 · MVP v1.0</h3>
-    <div class="field-grid">
-      <a class="field-card" href="list.html?id=learning-to-rank">
-        <div class="row"><span class="name">Learning to Rank</span><span class="count">12 学者</span></div>
-        <p class="sub">学习排序 / 排序学习</p>
-        <p class="desc">IR + ML 交叉，2005-2018 黄金期；pointwise → pairwise → listwise 三大流派。</p>
-        <div class="tags"><span class="tag">CS</span><span class="tag">IR</span><span class="tag">ML</span></div>
-      </a>
-      <div class="field-card disabled">
-        <div class="row"><span class="name" style="color:var(--gray-soft)">Diffusion Models</span><span class="count" style="background:rgba(120,72,40,.07);color:var(--gray-soft)">v1.1</span></div>
-        <p class="desc" style="color:var(--gray-soft)">拓展到 generative AI 领域</p>
-      </div>
-      <div class="field-card disabled">
-        <div class="row"><span class="name" style="color:var(--gray-soft)">RLHF</span><span class="count" style="background:rgba(120,72,40,.07);color:var(--gray-soft)">v1.1</span></div>
-        <p class="desc" style="color:var(--gray-soft)">对齐与人类反馈</p>
-      </div>
     </div>
   </section>
 
   <section class="pipeline">
     <h3 class="sec-title">检索管线 · How it works</h3>
     <div class="pipeline-grid">
-      <div class="stage"><div class="step">STAGE 1</div><div class="name">概念对齐</div><p class="desc">OpenAlex Concept Tree + LLM 同义词归并</p></div>
-      <div class="stage"><div class="step">STAGE 2</div><div class="name">RAG 召回</div><p class="desc">Qdrant ANN · Top 100 候选 · Recall@100 ≥ 90%</p></div>
-      <div class="stage"><div class="step">STAGE 3</div><div class="name">硬规则排序</div><p class="desc">h-index / 总引 / 近 3 年三滑块加权</p></div>
-      <div class="stage"><div class="step">STAGE 4</div><div class="name">LLM-as-a-judge</div><p class="desc">SSE 流式打分 · 关联理由 · 节点点亮 ✨</p></div>
+      <div class="stage"><div class="step">STAGE 1</div><div class="name">关键词输入</div><p class="desc">保留用户原始 query，不做领域按钮分流</p></div>
+      <div class="stage"><div class="step">STAGE 2</div><div class="name">RAG 检索</div><p class="desc">Mixedbread Store 语义检索 + rerank</p></div>
+      <div class="stage"><div class="step">STAGE 3</div><div class="name">学者排序</div><p class="desc">RAG 相关性优先，学术指标辅助展示</p></div>
     </div>
   </section>
 
@@ -256,49 +147,6 @@
     <span>北京中关村学院 · AI Future Hackathon 2026</span>
   </footer>
 
-  <!-- 概念对齐 Modal -->
-  <div class="modal-backdrop" id="modal">
-    <div class="modal">
-      <p class="stage">[STAGE 1] CONCEPT ALIGNMENT</p>
-      <p class="uin">检测到输入 <span class="q" id="user-input"></span></p>
-      <p class="prompt">是否对齐到以下领域？</p>
-      <div class="aligned-box">
-        <p class="name" id="aligned-name"></p>
-        <p class="cn" id="aligned-cn"></p>
-        <p class="path" id="aligned-path"></p>
-        <p class="d" id="aligned-desc"></p>
-      </div>
-      <div class="modal-btns">
-        <button class="btn btn-ghost" id="modal-cancel">不是这个</button>
-        <button class="btn btn-primary" id="modal-confirm">确认 · 检索 →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 未收录领域 Modal -->
-  <div class="modal-backdrop" id="not-yet">
-    <div class="modal" style="max-width:480px;">
-      <p class="stage warn">[v1.1] DOMAIN NOT YET INDEXED</p>
-      <p class="uin">你输入了 <span class="q" id="not-yet-input"></span></p>
-      <div class="not-yet-box">
-        <h3>⏳ 该领域尚未收录</h3>
-        <p>MVP v1.0 静态 cache 只覆盖 Learning to Rank。但你可以让我们 <b>实时通过 OpenAlex 现搜</b> 一下：</p>
-      </div>
-      <button class="live-btn" id="live-search-btn">🛰 通过 OpenAlex 实时查询 →</button>
-      <div class="live-result" id="live-result"></div>
-      <p style="font-size:11px;color:var(--gray-soft);text-align:center;margin:8px 0 14px;">或选已收录领域：</p>
-      <div class="not-yet-list">
-        <a class="item" href="list.html?id=learning-to-rank">
-          <span><span class="n">Learning to Rank</span> · <span class="c">学习排序 · 12 学者</span></span>
-          <span class="ar">→</span>
-        </a>
-      </div>
-      <div class="modal-btns">
-        <button class="btn btn-ghost" id="not-yet-close">换一个搜索词</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Agent Terminal Overlay -->
   <div class="overlay" id="overlay">
     <div class="terminal-wrap">
@@ -308,51 +156,16 @@
   </div>
 
 <script>
-const DOMAINS = {
-  "learning-to-rank": {
-    id: "learning-to-rank",
-    name: "Learning to Rank",
-    chinese: "学习排序",
-    aliases: ["l2r","ltr","learning to rank","学习排序","排序学习","ranking model","search ranking"],
-    concept_path: "CS → AI → Machine Learning → Information Retrieval → Learning to Rank",
-    desc: "IR + ML 交叉。2005-2018 黄金期，pointwise → pairwise → listwise 三大流派。"
-  }
-};
-
-function normalize(s){return s.toLowerCase().replace(/[-\s_]/g," ").replace(/\s+/g," ").trim();}
-function resolveDomain(input){
-  const n = normalize(input);
-  for(const [id,d] of Object.entries(DOMAINS)){
-    if(d.aliases.some(a => normalize(a) === n || n.includes(normalize(a)))) return d;
-  }
-  return null;
-}
-
 const box = document.getElementById("searchBox");
 const input = document.getElementById("q");
 const clearBtn = document.getElementById("clearBtn");
 const goBtn = document.getElementById("go");
 const hint = document.getElementById("hint");
-let mode = "domain";
 
 input.addEventListener("focus", () => box.classList.add("focused"));
 input.addEventListener("blur", () => box.classList.remove("focused"));
 input.addEventListener("input", () => box.classList.toggle("has-text", input.value.length > 0));
 clearBtn.addEventListener("click", () => { input.value = ""; box.classList.remove("has-text"); input.focus(); });
-
-document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
-  document.querySelectorAll(".chip").forEach(x => x.classList.remove("active"));
-  c.classList.add("active");
-  mode = c.dataset.mode;
-  input.placeholder = mode === "person"
-    ? "输入学者姓名 [v1.1 即将上线]"
-    : "输入研究领域，例如 Learning to Rank / 学习排序 / L2R";
-}));
-
-document.querySelectorAll(".suggest").forEach(b => {
-  if(b.disabled) return;
-  b.addEventListener("click", () => { input.value = b.dataset.q; box.classList.add("has-text"); search(); });
-});
 
 let hintTimer;
 function showHint(msg, warn){ hint.textContent = msg; hint.classList.toggle("warn", !!warn); hint.classList.add("show"); clearTimeout(hintTimer); hintTimer = setTimeout(() => hint.classList.remove("show"), 2800); }
@@ -361,166 +174,24 @@ function search(){
   const v = input.value.trim();
   if(!v){ showHint("请输入检索内容", true); box.classList.add("focused"); input.focus();
     box.animate([{transform:"translateX(0)"},{transform:"translateX(-5px)"},{transform:"translateX(5px)"},{transform:"translateX(0)"}],{duration:240}); return; }
-  if(mode === "person"){ showHint("人名模式将在 v1.1 上线，请切回领域模式", true); return; }
-  const d = resolveDomain(v);
-  if(d){
-    // 已收录领域：弹概念对齐 modal（让评委看到 alignment 流程）
-    showAlignModal(v, d);
-  } else {
-    // 未收录：直接走 agent → list 页（live=1 调 OpenAlex 现搜）
-    runLiveSearch(v);
-  }
-}
-
-const LIVE_PHASES = [
-  { line: "&gt; ScholarTrace agent v0.1 started", delay: 100 },
-  { line: "&gt; query: <span class='high' id='qlog'></span>", delay: 80 },
-  { line: "", delay: 180 },
-  { line: "<span class='stage-name'>[Stage 1]</span> Concept alignment ...", delay: 100 },
-  { line: "  <span class='ok'>✓</span> Embedded query (1536-dim)", delay: 220 },
-  { line: "  <span class='ok'>✓</span> Cache miss · 静态库未收录，fallback 到 OpenAlex live", delay: 240 },
-  { line: "", delay: 180 },
-  { line: "<span class='stage-name'>[Stage 2]</span> OpenAlex retrieval ...", delay: 100 },
-  { line: "  <span class='ok'>✓</span> /concepts?search=&lt;query&gt; · matching", delay: 220 },
-  { line: "  <span class='ok'>✓</span> /works · sorted by cited_by_count, per_page=25", delay: 220 },
-  { line: "  <span class='ok'>✓</span> aggregating top authors from authorships", delay: 220 },
-  { line: "", delay: 180 },
-  { line: "<span class='stage-name'>[Stage 3]</span> Hard-rule ranking ...", delay: 100 },
-  { line: "  <span class='ok'>✓</span> Applied weights (40% h-index / 30% citations / 30% recent)", delay: 240 },
-  { line: "", delay: 180 },
-  { line: "→ Rendering Top-K list <span class='blink'></span>", delay: 380 },
-];
-
-async function runLiveSearch(rawInput){
-  document.getElementById("modal").classList.remove("show");
-  document.getElementById("overlay").classList.add("show");
-  const log = document.getElementById("log");
-  log.innerHTML = "";
-  for(const p of LIVE_PHASES){
-    const div = document.createElement("div");
-    div.innerHTML = p.line;
-    log.appendChild(div);
-    if(div.querySelector("#qlog")) div.querySelector("#qlog").textContent = `"${rawInput}"`;
-    log.scrollIntoView({ block: "end" });
-    await new Promise(r => setTimeout(r, p.delay));
-  }
-  await new Promise(r => setTimeout(r, 500));
-  location.href = `list.html?live=1&q=${encodeURIComponent(rawInput)}`;
-}
-
-function showAlignModal(rawInput, domain){
-  document.getElementById("user-input").textContent = `"${rawInput}"`;
-  document.getElementById("aligned-name").textContent = domain.name;
-  document.getElementById("aligned-cn").textContent = domain.chinese;
-  document.getElementById("aligned-path").textContent = domain.concept_path;
-  document.getElementById("aligned-desc").textContent = domain.desc;
-  document.getElementById("modal").classList.add("show");
-  document.getElementById("modal-confirm").onclick = () => runDomainSearch(domain, rawInput);
-  document.getElementById("modal-cancel").onclick = () => { document.getElementById("modal").classList.remove("show"); input.focus(); };
-}
-
-function showNotYet(rawInput){
-  document.getElementById("not-yet-input").textContent = `"${rawInput}"`;
-  document.getElementById("live-result").innerHTML = "";  // 清空上次结果
-  document.getElementById("not-yet").classList.add("show");
-  // bind live search button (rebind every time to capture rawInput)
-  document.getElementById("live-search-btn").onclick = () => liveSearch(rawInput);
-}
-document.getElementById("not-yet-close").addEventListener("click", () => {
-  document.getElementById("not-yet").classList.remove("show");
-  input.value = "";
-  box.classList.remove("has-text");
-  input.focus();
-});
-
-async function liveSearch(query){
-  const r = document.getElementById("live-result");
-  const btn = document.getElementById("live-search-btn");
-  btn.disabled = true; btn.textContent = "查询中...";
-  r.innerHTML = `<div class="live-loading">
-    <p>⏳ 正在通过 OpenAlex 实时检索...</p>
-    <p class="step" id="live-step">→ Step 1/2: 寻找概念匹配</p>
-  </div>`;
-
-  try {
-    // Step 1: concept matching
-    const cRes = await fetch(`https://api.openalex.org/concepts?search=${encodeURIComponent(query)}&per_page=1&mailto=scholartrace@demo.dev`);
-    if(!cRes.ok) throw new Error("OpenAlex concept API 错误 " + cRes.status);
-    const cData = await cRes.json();
-    if(!cData.results || !cData.results.length) throw new Error("未匹配到 OpenAlex 概念");
-    const concept = cData.results[0];
-    const cid = concept.id.split("/").pop();
-
-    document.getElementById("live-step").textContent = `✓ 匹配概念: ${concept.display_name} (${concept.works_count.toLocaleString()} works) · → Step 2/2: 聚合 top authors`;
-
-    // Step 2: top works → aggregate authors
-    const wRes = await fetch(`https://api.openalex.org/works?filter=concepts.id:${cid}&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`);
-    if(!wRes.ok) throw new Error("OpenAlex works API 错误 " + wRes.status);
-    const wData = await wRes.json();
-
-    const agg = {};
-    wData.results.forEach(p => {
-      (p.authorships || []).slice(0, 5).forEach(a => {
-        const id = a.author.id;
-        if(!agg[id]) agg[id] = { id, name: a.author.display_name, papers: 0, cit: 0, inst: "" };
-        agg[id].papers++;
-        agg[id].cit += (p.cited_by_count || 0);
-        if(a.institutions && a.institutions.length) agg[id].inst = a.institutions[0].display_name;
-      });
-    });
-    const top = Object.values(agg).sort((a, b) => b.cit - a.cit).slice(0, 10);
-
-    // 渲染
-    const itemsHtml = top.map((a, i) => {
-      const truncInst = (a.inst || "—").length > 35 ? a.inst.slice(0, 33) + "…" : (a.inst || "—");
-      return `
-        <div class="live-item">
-          <span class="rk">#${i+1}</span>
-          <div class="info">
-            <p class="nm">${a.name}</p>
-            <p class="iss">${truncInst}</p>
-          </div>
-          <div class="stats">
-            <span>${a.papers} top papers</span>
-            <span class="cit">${a.cit.toLocaleString()} cit</span>
-          </div>
-        </div>
-      `;
-    }).join("");
-
-    r.innerHTML = `
-      <p class="live-success">✓ OpenAlex 实时查询完成 · 概念: <b>${concept.display_name}</b></p>
-      <p class="live-meta">从 ${wData.results.length} 篇 top works 聚合 → top 10 作者 (按 cited 排序)</p>
-      <div class="live-list">${itemsHtml}</div>
-    `;
-    btn.disabled = false; btn.textContent = "🛰 重新查询 OpenAlex";
-  } catch(e) {
-    r.innerHTML = `<div class="live-err">❌ 查询失败：${e.message}<br><span style="font-size:10.5px;opacity:.7;">CORS / 网络问题可能导致黑客松现场不稳定。可改用已收录的 Learning to Rank 演示。</span></div>`;
-    btn.disabled = false; btn.textContent = "🛰 重试";
-  }
+  runKeywordSearch(v);
 }
 
 const PHASES = [
   { line: "&gt; ScholarTrace agent v0.1 started", delay: 100 },
   { line: "&gt; query: <span class='high' id='qlog'></span>", delay: 80 },
   { line: "", delay: 180 },
-  { line: "<span class='stage-name'>[Stage 1]</span> Concept alignment ...", delay: 100 },
-  { line: "  <span class='ok'>✓</span> Embedded query (1536-dim)", delay: 220 },
-  { line: "  <span class='ok'>✓</span> OpenAlex concept matched: <span class='high' id='clog'></span>", delay: 250 },
+  { line: "<span class='stage-name'>[Stage 1]</span> Keyword accepted", delay: 120 },
+  { line: "  <span class='ok'>✓</span> Sending query to RAG search", delay: 220 },
   { line: "", delay: 180 },
   { line: "<span class='stage-name'>[Stage 2]</span> RAG retrieval ...", delay: 100 },
-  { line: "  <span class='ok'>✓</span> Qdrant ANN search · 100 candidates", delay: 280 },
-  { line: "  <span class='ok'>✓</span> Recall@100 estimated: <span class='ok'>0.93</span>", delay: 280 },
+  { line: "  <span class='ok'>✓</span> Mixedbread semantic search", delay: 260 },
+  { line: "  <span class='ok'>✓</span> Reranking scholar profiles", delay: 260 },
   { line: "", delay: 180 },
-  { line: "<span class='stage-name'>[Stage 3]</span> Hard-rule ranking ...", delay: 100 },
-  { line: "  <span class='ok'>✓</span> Fetched metrics from Semantic Scholar (h-index, citations, recent-3y)", delay: 280 },
-  { line: "  <span class='ok'>✓</span> Applied default weights (40% h-index / 30% citations / 30% recent)", delay: 280 },
-  { line: "", delay: 180 },
-  { line: "→ Rendering Top-K list <span class='blink'></span>", delay: 380 },
+  { line: "→ Rendering ranked scholars <span class='blink'></span>", delay: 340 },
 ];
 
-async function runDomainSearch(domain, rawInput){
-  document.getElementById("modal").classList.remove("show");
+async function runKeywordSearch(rawInput){
   document.getElementById("overlay").classList.add("show");
   const log = document.getElementById("log");
   log.innerHTML = "";
@@ -529,12 +200,14 @@ async function runDomainSearch(domain, rawInput){
     div.innerHTML = p.line;
     log.appendChild(div);
     if(div.querySelector("#qlog")) div.querySelector("#qlog").textContent = `"${rawInput}"`;
-    if(div.querySelector("#clog")) div.querySelector("#clog").textContent = `${domain.name} (${domain.chinese})`;
     log.scrollIntoView({ block: "end" });
     await new Promise(r => setTimeout(r, p.delay));
   }
   await new Promise(r => setTimeout(r, 500));
-  location.href = `list.html?id=${domain.id}`;
+  const target = new URL("list.html", location.href);
+  target.searchParams.set("id", "learning-to-rank");
+  target.searchParams.set("q", rawInput);
+  location.href = target.href;
 }
 
 goBtn.addEventListener("click", search);

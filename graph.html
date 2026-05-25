@@ -87,25 +87,6 @@
   .reading .why{display:block;color:var(--gray);margin-top:2px;font-size:11px;line-height:1.5;}
   .reading .why .diff{color:var(--blue-hover);margin-left:4px;}
 
-  /* Open Problems */
-  .op-list{display:flex;flex-direction:column;gap:12px;}
-  .op-card{background:linear-gradient(180deg,rgba(255,253,251,.95),rgba(252,243,234,.85));border:1px solid rgba(217,119,87,.22);border-radius:12px;padding:13px 14px;transition:transform .18s,box-shadow .2s;cursor:default;}
-  .op-card:hover{transform:translateX(2px);box-shadow:var(--shadow-md);border-color:rgba(217,119,87,.42);}
-  .op-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;gap:6px;}
-  .op-tag{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;padding:2px 7px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:.3px;}
-  .op-tag.theory{background:rgba(124,58,237,.13);color:#6d28d9;}
-  .op-tag.engineering{background:rgba(37,99,235,.13);color:#1d4ed8;}
-  .op-tag.data{background:rgba(34,197,94,.13);color:#15803d;}
-  .op-tag.evaluation{background:rgba(217,119,87,.15);color:var(--blue-hover);}
-  .op-tag.interdisciplinary{background:rgba(236,72,153,.13);color:#be185d;}
-  .op-diff{font-size:10px;color:#b08200;font-family:'JetBrains Mono',monospace;letter-spacing:1px;}
-  .op-title{font-size:13px;font-weight:650;color:var(--ink);letter-spacing:-.2px;line-height:1.35;margin-bottom:6px;}
-  .op-desc{font-size:11.5px;color:var(--gray);line-height:1.6;margin-bottom:8px;}
-  .op-papers{display:flex;flex-direction:column;gap:3px;}
-  .op-paper{font-size:10.5px;color:var(--gray-soft);font-family:inherit;line-height:1.45;}
-  .op-paper::before{content:"↳ ";color:var(--blue);}
-  .op-empty{font-size:11px;color:var(--gray-soft);font-style:italic;padding:8px 0;}
-
   /* === 中：图谱 === */
   .graph-wrap{display:flex;flex-direction:column;gap:10px;min-height:0;}
   .filter-bar{background:rgba(255,253,251,.85);border:1px solid var(--border);border-radius:14px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
@@ -121,27 +102,8 @@
   .legend .hint{color:var(--gray-soft);font-size:10.5px;}
 
   .canvas-wrap{flex:1;background:radial-gradient(circle at 1px 1px,rgba(120,72,40,.05) 1px,transparent 0) 0 0/24px 24px,linear-gradient(180deg,rgba(252,247,242,.9),#fffdfb);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-md);overflow:hidden;position:relative;min-height:480px;}
-  #graph{width:100%;height:100%;opacity:0;transition:opacity .55s ease;}
-  #graph.ready{opacity:1;}
+  #graph{width:100%;height:100%;}
   .canvas-hint{position:absolute;top:10px;right:14px;font-size:10px;color:var(--gray-soft);font-family:'JetBrains Mono',monospace;pointer-events:none;}
-
-  /* 加载覆盖层（stabilization 期间显示） */
-  .stab-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--gray);transition:opacity .35s ease;pointer-events:none;}
-  .stab-overlay.hidden{opacity:0;}
-  .stab-spinner{width:36px;height:36px;border:3px solid rgba(217,119,87,.18);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-  .stab-text{font-size:12.5px;font-family:'JetBrains Mono',monospace;color:var(--blue-hover);letter-spacing:.5px;}
-
-  /* 二度加载进度条（图谱顶部覆盖） */
-  .deg2-bar{position:absolute;top:0;left:0;right:0;background:rgba(255,253,251,.95);border-bottom:1px solid var(--border);padding:8px 14px;display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--gray);transition:transform .35s ease;transform:translateY(-100%);z-index:20;}
-  .deg2-bar.show{transform:translateY(0);}
-  .deg2-bar .spin{width:12px;height:12px;border:1.5px solid rgba(217,119,87,.25);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;flex:0 0 auto;}
-  .deg2-bar .label{font-family:'JetBrains Mono',monospace;color:var(--blue-hover);font-weight:600;letter-spacing:.5px;font-size:10.5px;flex:0 0 auto;}
-  .deg2-bar .what{flex:1;min-width:0;}
-  .deg2-bar .what b{color:var(--ink);}
-  .deg2-bar .track{flex:0 0 100px;height:4px;background:rgba(120,72,40,.12);border-radius:2px;overflow:hidden;}
-  .deg2-bar .fill{height:100%;background:linear-gradient(90deg,#d97757,#c2410c);transition:width .4s ease;}
-  .deg2-bar .pct{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--blue-hover);font-weight:600;flex:0 0 auto;}
 
   /* === 右：节点详情 === */
   .detail-empty{font-size:13px;color:var(--gray);line-height:1.65;padding-top:30px;}
@@ -258,28 +220,12 @@
       </div>
     </div>
     <div class="canvas-wrap">
-      <!-- 二度加载进度条 -->
-      <div class="deg2-bar" id="deg2-bar">
-        <div class="spin"></div>
-        <span class="label">2nd-DEG</span>
-        <span class="what" id="deg2-what">正在通过 OpenAlex 拓展二度网络…</span>
-        <div class="track"><div class="fill" id="deg2-fill" style="width:0%"></div></div>
-        <span class="pct" id="deg2-pct">0/0</span>
-      </div>
-
       <div id="graph"></div>
-
-      <!-- stabilization 时显示的占位 -->
-      <div class="stab-overlay" id="stab-overlay">
-        <div class="stab-spinner"></div>
-        <div class="stab-text">computing layout…</div>
-      </div>
-
       <div class="canvas-hint">滚轮缩放 · 拖拽</div>
     </div>
   </section>
 
-  <!-- 右：节点详情 + Open Problems -->
+  <!-- 右：详情 -->
   <aside class="panel">
     <div class="panel-scroll">
       <p class="panel-title">Node Detail</p>
@@ -288,11 +234,6 @@
           <p>点击图中任一节点查看 LLM 生成的关联理由、代表论文、领域角色。</p>
           <p class="ph">→ double-click to re-center</p>
         </div>
-      </div>
-
-      <div class="section-divider" style="margin-top:22px;">
-        <p class="lbl">🔭 Open Problems · 待解之问</p>
-        <div id="open-problems" class="op-list"></div>
       </div>
     </div>
   </aside>
@@ -355,8 +296,9 @@ function roleOf(id){
   return "coauthor";
 }
 
-fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
+fetch(`data/${fieldId}.json`).then(r => r.json()).then(async d => {
   DATA = d;
+  await loadDynamicData();
   document.getElementById("field-tag").textContent = d.name;
   computeSiblings();
   renderCenter();
@@ -367,6 +309,31 @@ fetch(`data/${fieldId}.json`).then(r => r.json()).then(d => {
     startAIStream();
   }, 800);
 });
+
+async function loadDynamicData(){
+  try{
+    const res = await fetch("/api/dynamic-data");
+    if(!res.ok) return;
+    const payload = await res.json();
+    const scholarIds = new Set(DATA.scholars.map(s => s.id));
+    (payload.scholars || []).forEach(s => {
+      if(!s || !s.id || scholarIds.has(s.id)) return;
+      DATA.scholars.push(s);
+      scholarIds.add(s.id);
+    });
+
+    if(!Array.isArray(DATA.edges)) DATA.edges = [];
+    const edgeKeys = new Set(DATA.edges.map(e => `${e.source}|${e.target}|${e.type}`));
+    (payload.edges || []).forEach(e => {
+      const key = `${e.source}|${e.target}|${e.type}`;
+      if(!e.source || !e.target || edgeKeys.has(key)) return;
+      DATA.edges.push(e);
+      edgeKeys.add(key);
+    });
+  }catch(err){
+    console.warn("Dynamic scholar data unavailable", err);
+  }
+}
 
 function renderCenter(){
   const s = getScholar(centerId);
@@ -421,32 +388,6 @@ function renderCenter(){
     li.innerHTML = `<a href="${scholarLink(item.title)}" target="_blank">${item.title}</a><span class="why">${item.why}<span class="diff">${item.difficulty}</span></span>`;
     r.appendChild(li);
   });
-
-  // Open Problems
-  const tagCN = { theory:"理论", engineering:"工程", data:"数据", evaluation:"评测", interdisciplinary:"交叉" };
-  const op = document.getElementById("open-problems");
-  op.innerHTML = "";
-  const probs = s.open_problems || [];
-  if(!probs.length){
-    op.innerHTML = `<p class="op-empty">(此节点暂无 open problems 数据)</p>`;
-  } else {
-    probs.forEach(p => {
-      const tag = p.tag || "theory";
-      const papersHtml = (p.linked_papers || []).map(t => `<a class="op-paper" href="${scholarLink(t)}" target="_blank" rel="noopener">${t}</a>`).join("");
-      const card = document.createElement("div");
-      card.className = "op-card";
-      card.innerHTML = `
-        <div class="op-head">
-          <span class="op-tag ${tag}">${tagCN[tag] || tag}</span>
-          <span class="op-diff">${p.difficulty || "★★★"}</span>
-        </div>
-        <h4 class="op-title">${p.title}</h4>
-        <p class="op-desc">${p.description}</p>
-        ${papersHtml ? `<div class="op-papers">${papersHtml}</div>` : ""}
-      `;
-      op.appendChild(card);
-    });
-  }
 }
 
 function renderGraph(){
@@ -472,8 +413,8 @@ function renderGraph(){
     visNodes.push({
       id, label: (s.chinese_name || s.name) + (judged && !isCenter ? "  ✨" : ""),
       title: `${s.name}${s.chinese_name ? " (" + s.chinese_name + ")" : ""}\n${s.institution}${s.metrics ? "\nh=" + s.metrics.h_index + " · " + (s.metrics.total_citations/1000).toFixed(0) + "k cit" : ""}`,
-      shape: "circle", size: SCHOLAR_SIZE,
-      font: { color: style.font, size: 13, face: "Inter, PingFang SC", strokeWidth: 0, bold: isCenter },
+      shape: "circle", size: isCenter ? 38 : SCHOLAR_SIZE,
+      font: { color: style.font, size: isCenter ? 17 : 13, face: "Inter, PingFang SC", strokeWidth: 0, bold: isCenter },
       color: { background: style.bg, border: style.border, highlight: { background: style.bg, border: "#c2410c" } },
       borderWidth: style.borderWidth,
       margin: { top: 10, right: 14, bottom: 10, left: 14 },
@@ -507,41 +448,20 @@ function renderGraph(){
       _meta: e, _type: "coauthor"
     }));
 
-  // 二度合作边：center 的邻居之间互相的 coauthor 关系，构成多层结构
-  const usedCoauthorIds = new Set(coauthorVisEdges.map(e => e.id));
-  const secondDegreeCoauthorEdges = DATA.edges
-    .filter(e => e.type === "coauthor")
-    .filter(e => nodeIds.has(e.source) && nodeIds.has(e.target))
-    .filter(e => e.source !== centerId && e.target !== centerId)
-    .map((e, i) => ({
-      id: `c2-${i}`, from: e.source, to: e.target,
-      arrows: "", dashes: [6, 4],
-      color: { color: "#e3d4c4", opacity: 0.45 },
-      width: Math.max(0.8, Math.min(2.5, Math.log(e.weight + 1) * 0.4)),
-      smooth: { type: "continuous" },
-      _meta: e, _type: "coauthor"
-    }));
-
   let allEdges = [];
   if(activeEdgeFilter === "all" || activeEdgeFilter === "mentorship") allEdges = allEdges.concat(mentorshipVisEdges);
   if(activeEdgeFilter === "all" || activeEdgeFilter === "sibling")    allEdges = allEdges.concat(siblingVisEdges);
-  if(activeEdgeFilter === "all" || activeEdgeFilter === "coauthor")   allEdges = allEdges.concat(coauthorVisEdges).concat(secondDegreeCoauthorEdges);
+  if(activeEdgeFilter === "all" || activeEdgeFilter === "coauthor")   allEdges = allEdges.concat(coauthorVisEdges);
 
   const data = { nodes: new vis.DataSet(visNodes), edges: new vis.DataSet(allEdges) };
   if(network) network.destroy();
-
-  const graphEl = document.getElementById("graph");
-  const stabOverlay = document.getElementById("stab-overlay");
-  graphEl.classList.remove("ready");
-  stabOverlay.classList.remove("hidden");
-
-  network = new vis.Network(graphEl, data, {
+  network = new vis.Network(document.getElementById("graph"), data, {
     physics: {
       enabled: true,
       barnesHut: { gravitationalConstant: -4500, springLength: 150, springConstant: 0.018, damping: 0.92, avoidOverlap: 0.3 },
-      stabilization: { enabled: true, iterations: 400, fit: true, updateInterval: 100 },
-      minVelocity: 0.05,
-      timestep: 0.35
+      stabilization: { iterations: 200, fit: true },
+      minVelocity: 0.01,
+      timestep: 0.28
     },
     interaction: { hover: true, tooltipDelay: 200, zoomView: true, hoverConnectedEdges: true },
     nodes: {
@@ -557,20 +477,8 @@ function renderGraph(){
       }
     }
   });
-
-  // 稳定完成后：彻底停止物理 → 节点静止不闪 → 淡入显示 → 启动二度 API 展开
   network.once("stabilizationIterationsDone", () => {
-    network.stopSimulation();
-    network.setOptions({ physics: { enabled: false }, layout: { improvedLayout: false } });
-    // 把所有当前节点 fix 住，避免后续 add/redraw 触发任何位移
-    const ids = data.nodes.getIds();
-    const positions = network.getPositions(ids);
-    ids.forEach(id => {
-      data.nodes.update({ id, x: positions[id].x, y: positions[id].y, fixed: { x: true, y: true } });
-    });
-    stabOverlay.classList.add("hidden");
-    graphEl.classList.add("ready");
-    setTimeout(() => expand2ndDegree(data), 400);
+    setInterval(() => { if(network) network.startSimulation(); setTimeout(() => network && network.stopSimulation(), 600); }, 4500);
   });
 
   network.on("click", p => { if(p.nodes.length) showNodeDetail(p.nodes[0]); });
@@ -579,163 +487,7 @@ function renderGraph(){
   });
 }
 
-// ====================================================
-// 二度展开：对 top 一级 scholars 调 OpenAlex API 拿 coauthors，加为二级节点
-// ====================================================
-async function expand2ndDegree(data){
-  // 选 top 3 一级（self + 紧密合作圈），按 metrics.centrality 排序
-  const candidates = [
-    ...DATA.scholars.filter(s => s.relation_to_center === "coauthor"),
-    ...[...SIBLINGS].map(sid => DATA.scholars.find(s => s.id === sid)).filter(Boolean)
-  ];
-  candidates.sort((a, b) => (b.metrics?.centrality || 0) - (a.metrics?.centrality || 0));
-  const targets = candidates.slice(0, 3);
-  if(!targets.length) return;
-
-  const bar = document.getElementById("deg2-bar");
-  const what = document.getElementById("deg2-what");
-  const fill = document.getElementById("deg2-fill");
-  const pct = document.getElementById("deg2-pct");
-  bar.classList.add("show");
-
-  let added = new Set();   // 已加的二度 node id
-  let done = 0;
-  for(const s of targets){
-    what.innerHTML = `Searching OpenAlex for <b>${s.chinese_name || s.name}</b>'s coauthors…`;
-    try {
-      const coauths = await fetchTopCoauthors(s.name);
-      // 取 top 2，过滤掉已在图里的（避免与现有节点重复）
-      const picks = coauths.filter(c => !added.has(c.oaId) && !inGraphByName(c.name)).slice(0, 2);
-      // 朝外扇形 layout：拿父节点位置，计算父→中心的方向，二级节点沿外侧方向铺开
-      const positions = network.getPositions([s.id, centerId]);
-      const sx = positions[s.id]?.x || 0;
-      const sy = positions[s.id]?.y || 0;
-      const cx = positions[centerId]?.x || 0;
-      const cy = positions[centerId]?.y || 0;
-      let dx = sx - cx, dy = sy - cy;
-      const norm = Math.sqrt(dx*dx + dy*dy) || 1;
-      // 单位向量：父节点远离中心的方向
-      const ux = dx / norm, uy = dy / norm;
-      // 把所有二级邻居 fan-out
-      const fanSpread = 0.55;  // ±0.55 rad，约 ±32°
-      picks.forEach((c, idx) => {
-        const t = picks.length === 1 ? 0 : (idx / (picks.length - 1)) * 2 - 1; // -1..1
-        const a = t * fanSpread;
-        // 旋转 (ux,uy) by 角度 a
-        const rx = Math.cos(a) * ux - Math.sin(a) * uy;
-        const ry = Math.sin(a) * ux + Math.cos(a) * uy;
-        const r = 130 + idx * 8;  // 稍微错开半径避免完全对称
-        const newId = `oa-${c.oaId}`;
-        data.nodes.add({
-          id: newId,
-          label: c.name,
-          title: `${c.name}\n@${c.inst || "?"}\n${c.papers} top papers · ${c.cit.toLocaleString()} cit (via OpenAlex)`,
-          shape: "circle",
-          size: 16,
-          x: sx + rx * r,
-          y: sy + ry * r,
-          fixed: { x: true, y: true },  // 完全固定，禁止任何重排
-          physics: false,
-          font: { color: "#5a3d28", size: 11, face: "Inter, PingFang SC", bold: false },
-          color: { background: "#fbe5d2", border: "#e8b890", highlight: { background: "#fbe5d2", border: "#c2410c" } },
-          borderWidth: 1.2,
-          margin: { top: 8, right: 12, bottom: 8, left: 12 },
-          _role: "second_degree",
-          _meta: { name: c.name, institution: c.inst, papers: c.papers, cit: c.cit, oa_url: c.oaUrl, parent: s.id }
-        });
-        data.edges.add({
-          id: `d2-${s.id}-${newId}`,
-          from: s.id, to: newId,
-          arrows: "", dashes: [3, 3],
-          color: { color: "#e3d4c4", opacity: 0.55 },
-          width: 1, smooth: { type: "continuous" }
-        });
-        added.add(c.oaId);
-      });
-      what.innerHTML = `✓ <b>${s.chinese_name || s.name}</b> → ${picks.length} new`;
-    } catch(e) {
-      what.innerHTML = `⚠ <b>${s.chinese_name || s.name}</b> fetch failed (${e.message})`;
-    }
-    done++;
-    fill.style.width = (done / targets.length * 100) + "%";
-    pct.textContent = `${done}/${targets.length}`;
-    await new Promise(r => setTimeout(r, 250));
-  }
-  // 全部完成后 1.5 秒隐藏 bar
-  setTimeout(() => bar.classList.remove("show"), 1500);
-}
-
-function inGraphByName(name){
-  // 看一级节点里有没有同名（很简单的 name 匹配）
-  const allScholars = [...DATA.scholars, ...(DATA.mentors||[])];
-  return allScholars.some(s =>
-    s.name.toLowerCase() === name.toLowerCase() ||
-    (s.name.replace(/[‐-]/g, " ").toLowerCase() === name.replace(/[‐-]/g, " ").toLowerCase())
-  );
-}
-
-async function fetchTopCoauthors(authorName){
-  // Step 1: 搜 author 拿 OpenAlex ID
-  const sRes = await fetch(`https://api.openalex.org/authors?search=${encodeURIComponent(authorName)}&per_page=3&mailto=scholartrace@demo.dev`);
-  if(!sRes.ok) throw new Error("author search " + sRes.status);
-  const sData = await sRes.json();
-  if(!sData.results || !sData.results.length) throw new Error("author not found");
-  // 选 cited 最多的（最像目标本人）
-  const oaAuthor = sData.results.sort((a, b) => b.cited_by_count - a.cited_by_count)[0];
-  const aid = oaAuthor.id.split("/").pop();
-
-  // Step 2: 拿这个人的 top 20 works，聚合 coauthors
-  const wRes = await fetch(`https://api.openalex.org/works?filter=author.id:${aid}&sort=cited_by_count:desc&per_page=20&select=cited_by_count,authorships&mailto=scholartrace@demo.dev`);
-  if(!wRes.ok) throw new Error("works " + wRes.status);
-  const wData = await wRes.json();
-
-  const agg = {};
-  wData.results.forEach(p => {
-    (p.authorships || []).forEach(a => {
-      const id = a.author.id;
-      if(id === oaAuthor.id) return;  // 跳过本人
-      if(!agg[id]) agg[id] = { oaId: id.split("/").pop(), oaUrl: id, name: a.author.display_name, papers: 0, cit: 0, inst: "" };
-      agg[id].papers++;
-      agg[id].cit += (p.cited_by_count || 0);
-      if(a.institutions && a.institutions.length && !agg[id].inst) agg[id].inst = a.institutions[0].display_name;
-    });
-  });
-  return Object.values(agg).sort((a, b) => b.cit - a.cit);
-}
-
 function showNodeDetail(nodeId){
-  // 二级节点（OpenAlex 实时搜索得到）
-  if(typeof nodeId === "string" && nodeId.startsWith("oa-")){
-    const node = network.body.data.nodes.get(nodeId);
-    if(!node || !node._meta) return;
-    const m = node._meta;
-    const parent = getScholar(m.parent);
-    const parentName = parent ? (parent.chinese_name || parent.name) : m.parent;
-    document.getElementById("node-panel").innerHTML = `
-      <div class="nd-head">
-        <div class="nd-avatar" style="background:linear-gradient(135deg,#fbe5d2,#e8b890);color:#5a3d28">${m.name[0]}</div>
-        <div style="min-width:0">
-          <h2 class="nd-cn">${m.name}</h2>
-          <p class="nd-en">via OpenAlex · 二度节点</p>
-        </div>
-      </div>
-      <p class="nd-inst">${m.institution || "—"}</p>
-      <div class="nd-role-row">
-        <span class="nd-role">⚪ 二度节点（实时搜索）</span>
-        <span class="nd-ai">🛰 OA</span>
-      </div>
-      <div class="nd-metrics">
-        <div class="m"><p class="k">top works</p><p class="v">${m.papers}</p></div>
-        <div class="m"><p class="k">cit (top)</p><p class="v">${(m.cit/1000).toFixed(1)}k</p></div>
-        <div class="m"><p class="k">via</p><p class="v" style="font-size:9.5px">OpenAlex</p></div>
-      </div>
-      <div class="nd-blurb">通过 OpenAlex API 实时检索得到 · 是 <b>${parentName}</b> 的 top coauthor 之一。MVP 静态 cache 之外的真实数据。</div>
-      <div class="nd-links">
-        <a class="nd-link" href="${m.oa_url}" target="_blank" rel="noopener">↗ OpenAlex 主页</a>
-      </div>
-    `;
-    return;
-  }
   const role = roleOf(nodeId);
   const s = getScholar(nodeId);
   if(!s) return;
@@ -824,7 +576,7 @@ async function startAIStream(){
   (DATA.mentors || []).forEach(m => aiJudged.add(m.id));
   SIBLINGS.forEach(sid => aiJudged.add(sid));
   const coauthors = DATA.scholars.filter(s =>
-    s.relation_to_center === "coauthor" && !SIBLINGS.has(s.id) &&
+    s.id !== centerId && !SIBLINGS.has(s.id) &&
     DATA.edges.some(e => e.type === "coauthor" && ((e.source === centerId && e.target === s.id) || (e.target === centerId && e.source === s.id)))
   );
   coauthors.sort((a,b) => (b.metrics?.centrality||0) - (a.metrics?.centrality||0));
