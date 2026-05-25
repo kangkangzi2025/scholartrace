@@ -242,22 +242,36 @@ async function loadLiveFromOpenAlex(query){
 
   try {
     document.getElementById("progress").style.width = "30%";
+    document.getElementById("status-text").textContent = "Step 1/3: 调 OpenAlex /works (AI 子树)";
 
-    // 一步走：用 works fulltext search + AI 子树 filter，避开 /concepts 误匹配（如 diffusion → 物理）
-    let wRes = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(query)}&filter=concepts.id:${AI_CONCEPT}&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`);
-    if(!wRes.ok) throw new Error("works API " + wRes.status);
+    // 一步走：用 works fulltext search + AI 子树 filter，避开 /concepts 误匹配
+    const url1 = `https://api.openalex.org/works?search=${encodeURIComponent(query)}&filter=concepts.id:${AI_CONCEPT}&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`;
+    console.log("[scholartrace] fetching:", url1);
+    let wRes;
+    try {
+      wRes = await fetch(url1);
+    } catch(netErr){
+      throw new Error("网络错误：无法连接 api.openalex.org · " + netErr.message);
+    }
+    console.log("[scholartrace] step1 response:", wRes.status, wRes.statusText);
+    if(!wRes.ok) throw new Error(`works API HTTP ${wRes.status} · ${wRes.statusText}`);
     let wData = await wRes.json();
+    console.log("[scholartrace] step1 results:", wData.results?.length, "papers, meta:", wData.meta);
 
     // 如果 AI filter 拿到太少（< 8 篇），fallback 到无 filter 全库搜
     if(!wData.results || wData.results.length < 8){
-      const wRes2 = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(query)}&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`);
+      document.getElementById("status-text").textContent = "Step 2/3: AI filter 命中少，fallback 全库";
+      const url2 = `https://api.openalex.org/works?search=${encodeURIComponent(query)}&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`;
+      console.log("[scholartrace] fallback fetching:", url2);
+      const wRes2 = await fetch(url2);
       if(wRes2.ok){
         const wData2 = await wRes2.json();
         if(wData2.results && wData2.results.length > wData.results.length) wData = wData2;
       }
     }
-    if(!wData.results || !wData.results.length) throw new Error("OpenAlex 在该领域未找到论文");
+    if(!wData.results || !wData.results.length) throw new Error("OpenAlex 在该领域未找到论文 (返回 0 篇)");
     document.getElementById("progress").style.width = "55%";
+    document.getElementById("status-text").textContent = `Step 3/3: 聚合 ${wData.results.length} 篇 → top authors`;
 
     // 构造 "fake concept" 给 UI 用
     const concept = { display_name: query, works_count: wData.meta?.count || wData.results.length };
