@@ -324,7 +324,7 @@ async function loadFromOpenAlexFallback(){
       const r = await fetch(`https://api.openalex.org/authors?search=${encodeURIComponent(useQuery)}&per_page=10&sort=cited_by_count:desc&mailto=scholartrace@demo.dev`);
       if(!r.ok) throw new Error("OpenAlex authors " + r.status);
       const data = await r.json();
-      oaResults = (data.results || []).slice(0, 10).map((oa, idx) => oaAuthorToScholar(oa, idx));
+      oaResults = (data.results || []).slice(0, 10).map((oa, idx) => oaAuthorToScholar(oa, idx)).filter(Boolean);
     } else {
       // /works + AI filter, aggregate authors
       const r = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(useQuery)}&filter=concepts.id:C154945302&sort=cited_by_count:desc&per_page=25&select=display_name,cited_by_count,publication_year,authorships&mailto=scholartrace@demo.dev`);
@@ -377,32 +377,48 @@ async function loadFromOpenAlexFallback(){
 }
 
 function oaAuthorToScholar(oa, idx){
-  const palette = ["amber","rose","emerald","sky","violet","stone","blue","fuchsia"];
-  const safeId = oa?.id ? oa.id.split("/").pop().toLowerCase() : `unknown-${idx}-${Date.now()}`;
-  return {
-    id: "oa-" + safeId,
-    name: oa?.display_name || "Unknown Author",
-    chinese_name: PERSON_NAME_MAP_REVERSE[oa.display_name] || "",
-    institution: oa.last_known_institution?.display_name || (oa.affiliations && oa.affiliations[0]?.institution?.display_name) || "",
-    avatar_color: palette[idx % palette.length],
-    role_in_field: `OpenAlex 实时检索结果 #${idx+1}`,
-    relation_to_center: "live",
-    metrics: {
-      h_index: oa.summary_stats?.h_index || 0,
-      total_citations: oa.cited_by_count || 0,
-      recent_3y_citations: Math.round((oa.cited_by_count || 0) * 0.15),
-      field_papers: oa.works_count || 0,
-      centrality: 0.5, consistency: 0.5,
-      _unverified: false
-    },
-    field_papers: [],
-    research_line: (oa.x_concepts || []).slice(0, 5).map(c => c.display_name).join(" · ") || "(OpenAlex 实时数据)",
-    recommended_reading: [],
-    llm_blurb: `OpenAlex 实时 · ${oa.works_count || 0} works · ${(oa.cited_by_count || 0).toLocaleString()} citations`,
-    open_problems: [],
-    homepage_url: "",
-    scholar_url: oa.id
-  };
+  try {
+    if(!oa) return null;
+    const palette = ["amber","rose","emerald","sky","violet","stone","blue","fuchsia"];
+    const safeId = oa.id ? String(oa.id).split("/").pop().toLowerCase() : `unknown-${idx}-${Date.now()}`;
+    const displayName = oa.display_name || "Unknown Author";
+    const inst = oa?.last_known_institution?.display_name
+              || oa?.affiliations?.[0]?.institution?.display_name
+              || (Array.isArray(oa?.affiliations) && oa.affiliations[0]?.display_name)
+              || "";
+    const cit = oa?.cited_by_count || 0;
+    const works = oa?.works_count || 0;
+    const hIdx = oa?.summary_stats?.h_index || 0;
+    const concepts = Array.isArray(oa?.x_concepts) ? oa.x_concepts : [];
+
+    return {
+      id: "oa-" + safeId,
+      name: displayName,
+      chinese_name: (typeof PERSON_NAME_MAP_REVERSE !== "undefined" && PERSON_NAME_MAP_REVERSE[displayName]) || "",
+      institution: inst,
+      avatar_color: palette[idx % palette.length],
+      role_in_field: `OpenAlex 实时检索结果 #${idx+1}`,
+      relation_to_center: "live",
+      metrics: {
+        h_index: hIdx,
+        total_citations: cit,
+        recent_3y_citations: Math.round(cit * 0.15),
+        field_papers: works,
+        centrality: 0.5, consistency: 0.5,
+        _unverified: false
+      },
+      field_papers: [],
+      research_line: concepts.slice(0, 5).map(c => c?.display_name).filter(Boolean).join(" · ") || "(OpenAlex 实时数据)",
+      recommended_reading: [],
+      llm_blurb: `OpenAlex 实时 · ${works} works · ${cit.toLocaleString()} citations`,
+      open_problems: [],
+      homepage_url: "",
+      scholar_url: oa.id || ""
+    };
+  } catch(e) {
+    console.warn("[scholartrace] oaAuthorToScholar failed for idx", idx, "-- skipping", e);
+    return null;
+  }
 }
 
 // 反向映射：英文 → 中文（用于 OpenAlex 返回时自动补中文名）
